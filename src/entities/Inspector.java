@@ -3,10 +3,7 @@ package entities;
 import globals.Component;
 import globals.EntityState;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.*;
 
 
 public class Inspector extends Entity{
@@ -14,12 +11,14 @@ public class Inspector extends Entity{
     private HashMap<Component, Queue<Integer>> componentServiceTimes;
     private Component currentComponentUnderInspection;
     private HashMap<WorkBench, Integer> workbenchPriorities;
+    private Random randomNumberGenerator;
 
     public Inspector (String name) {
         super(name);
         this.componentWorkBenchHashMap = new HashMap<Component, ArrayList<WorkBench>>();
         this.componentServiceTimes = new HashMap<Component, Queue<Integer>>();
         this.workbenchPriorities = new HashMap<WorkBench, Integer>();
+        this.randomNumberGenerator = new Random();
     }
 
     /**
@@ -70,34 +69,39 @@ public class Inspector extends Entity{
         this.incrementStateTimer(currentState, interval);
 
         if (currentState == EntityState.ACTIVE && (serviceTimeRemaining <= 0)){
-            if (this.putComponentOnWorkbench()){
-                this.getNextComponentToInspect();
-            }
+            this.attemptToPutComponentOnWorkbench();
         } else if (currentState == EntityState.ACTIVE && (serviceTimeRemaining > 0)){
             super.decrementServiceTimeRemaining(interval);
         } else if (currentState == EntityState.BLOCKED){
-            if (this.putComponentOnWorkbench()){
-                this.getNextComponentToInspect();
-            }
+            this.attemptToPutComponentOnWorkbench();
         } else if (currentState == EntityState.DONE) {
-            //TODO: Not sure if any action is required here.perhap
+            //TODO: Not sure if any action is required here.
         } else {
             //This should only be entered in the first clock update.
-            //Update the state of this Inspector
-            this. getNextComponentToInspect();
+            this.getNextComponentToInspect();
         }
     }
 
     /**
+     * Determines the component type to inspect. If the Inspector can inspect multiple component types, randomly selects
+     * which component to inspect.
      *
+     * @return
      */
     private void getNextComponentToInspect(){
-        if (!this.componentServiceTimes.isEmpty()) {
-            //Update the state of this Inspector
+        if(this.componentWorkBenchHashMap.keySet().size() == 1){
+            this.currentComponentUnderInspection = new ArrayList<Component>(componentWorkBenchHashMap.keySet()).get(0);
+            this.setComponentServiceTime();
+        } else {
+            Integer randomComponentIndex = randomNumberGenerator.nextInt(this.componentWorkBenchHashMap.keySet().size());
+            this.currentComponentUnderInspection = new ArrayList<Component>(componentWorkBenchHashMap.keySet()).get(randomComponentIndex);
+            this.setComponentServiceTime();
+        }
+    }
+
+    private void setComponentServiceTime(){
+        if (!this.componentServiceTimes.get(this.currentComponentUnderInspection).isEmpty()) {
             this.setState(EntityState.ACTIVE);
-            //Set the current component under inspection for this Inspector
-            this.currentComponentUnderInspection = selectComponentTypeToInspect();
-            //Set the service time remaining for this inspection, based on the already generated service time list (this will remove this service time from the list of service times).
             super.setServiceTimeRemaining(this.componentServiceTimes.get(this.currentComponentUnderInspection).remove());
         } else {
             this.setState(EntityState.DONE);
@@ -105,38 +109,30 @@ public class Inspector extends Entity{
     }
 
     /**
+     * Determines whether any workbenches are able to take the component (assumed to have
+     * been inspected by this point).If not, Inspector state is set to BLOCKED.
      *
      * @return
      */
-    private boolean putComponentOnWorkbench(){
+    private void attemptToPutComponentOnWorkbench(){
         //Try to put component on a workbench
         //if successful get next component service time
         //else update inspectors state to blocked
         WorkBench workbench = getNextWorkBench();
         if (workbench != null) {
-            workbench.addComponent(currentComponentUnderInspection);
-            return true;
+            workbench.addComponent(this.currentComponentUnderInspection);
+            super.incrementServicesCompleted();
+            this.getNextComponentToInspect();
         } else {
             this.setState(EntityState.BLOCKED);
-            return false;
         }
     }
 
     /**
+     * Find's appropriate workbench to place component on. Looks for workbench with least buffer size (used buffer space).
+     * In the event of a tie, leverages workbenchPriorities.
      *
      * @return
-     */
-    private Component selectComponentTypeToInspect(){
-        if(this.componentWorkBenchHashMap.keySet().size() == 1){
-            return (new ArrayList<Component>(componentWorkBenchHashMap.keySet())).get(0);
-        } else {
-            //TODO implement random selection
-            return null;
-        }
-    }
-
-    /**
-     *      * @return
      */
     private WorkBench getNextWorkBench(){
         int minBufferSize = 999;

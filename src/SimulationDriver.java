@@ -7,6 +7,7 @@ import globals.Product;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class SimulationDriver {
     private static final int WORKBENCH_COMPONENT_BUFFER_SIZE = 2;
@@ -21,18 +22,26 @@ public class SimulationDriver {
         boolean running = true;
 
         while (running) {
+            ArrayList<EntityState> entityStates = new ArrayList<EntityState>();
             for (Entity entity : entities) {
-                if (entity.getState() != EntityState.DONE) {
+                EntityState entityState = entity.getState();
+                entityStates.add(entityState);
+                if (entityState != EntityState.DONE) {
                     entity.clockUpdate(CLOCK_INCREMENT_SIZE);
                 } else {
-                    running = false;
-                    System.out.println("Helo");
+                    // ?
+                }
+            }
+
+            //Stop driving the simulation if all entities are either DONE or BLOCKED
+            running = false;
+            for (EntityState entityState : entityStates){
+                if (entityState != EntityState.DONE && entityState != EntityState.BLOCKED) {
+                    running = true;
+                    break;
                 }
             }
         }
-
-
-        System.out.println("Hello World");
 
     }
 
@@ -76,10 +85,10 @@ public class SimulationDriver {
         inspectorTwo.registerComponentServiceTimes(Component.C3, readServiceTimeFile("resources/servinsp23.dat"));
 
         entities.add(inspectorOne);
-        /*entities.add(inspectorTwo);
+        entities.add(inspectorTwo);
         entities.add(workbenchOne);
         entities.add(workbenchTwo);
-        entities.add(workbenchThree);*/
+        entities.add(workbenchThree);
 
         return entities;
     }

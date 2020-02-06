@@ -1,6 +1,7 @@
 package entities;
 
 import globals.Component;
+import globals.EntityState;
 import globals.Product;
 
 import java.util.ArrayList;
@@ -66,7 +67,8 @@ public class WorkBench extends Entity {
      * @return
      */
     public boolean bufferAvailable(Component component){
-        if (this.componentBuffers.get(component) < maxBufferSize){
+        if (this.componentBuffers.containsKey(component) && (this.componentBuffers.get(component) < maxBufferSize)){
+        //if (this.componentBuffers.get(component) < maxBufferSize){
             return true;
         } else {
             return false;
@@ -74,6 +76,50 @@ public class WorkBench extends Entity {
     }
     
     public void clockUpdate(Integer interval){
+        Integer serviceTimeRemaining = super.getServiceTimeRemaining();
+        EntityState currentState = this.getState();
+        this.incrementStateTimer(currentState, interval);
 
+        if (currentState == EntityState.ACTIVE && (serviceTimeRemaining <= 0)){
+            //remove 1 component from each component buffers
+            this.completeAssembledProduct();
+            super.incrementServicesCompleted();
+            this.attemptToAssembleProduct();
+        } else if (currentState == EntityState.ACTIVE && (serviceTimeRemaining > 0)){
+            super.decrementServiceTimeRemaining(interval);
+        } else if (currentState == EntityState.BLOCKED){
+            this.attemptToAssembleProduct();
+        } else if (currentState == EntityState.DONE) {
+            //TODO: Not sure if any action is required here.
+        } else {
+            //This should only be entered in the first clock update.
+            this.attemptToAssembleProduct();
+        }
+    }
+
+    private void attemptToAssembleProduct(){
+        boolean componentsAvailableToAssembleProduct = true;
+
+        for (Integer bufferValue : this.componentBuffers.values()){
+            if (bufferValue == 0){
+                componentsAvailableToAssembleProduct = false;
+                break;
+            }
+        }
+
+        if (componentsAvailableToAssembleProduct){
+            this.setState(EntityState.ACTIVE);
+            super.setServiceTimeRemaining(this.serviceTimes.remove());
+        } else {
+            this.setState(EntityState.BLOCKED);
+        }
+    }
+
+    private void completeAssembledProduct(){
+        for (Component component : this.componentBuffers.keySet()){
+            Integer componentBuffer = this.componentBuffers.get(component);
+            componentBuffer--;
+            this.componentBuffers.put(component, componentBuffer);
+        }
     }
 }

@@ -10,7 +10,7 @@ import java.util.ArrayList;
 
 public class SimulationDriver {
     private static final int WORKBENCH_COMPONENT_BUFFER_SIZE = 2;
-    private static final int CLOCK_INCREMENT_SIZE = 1;
+    private static final Double CLOCK_INCREMENT_SIZE = 0.01;
 
     /**
      * Simulation Driver.
@@ -110,8 +110,8 @@ public class SimulationDriver {
      * @param filename
      * @return
      */
-    private static ArrayList<Integer> readServiceTimeFile (String filename){
-        ArrayList<Integer> serviceTimes = new ArrayList<Integer>();
+    private static ArrayList<Double> readServiceTimeFile (String filename){
+        ArrayList<Double> serviceTimes = new ArrayList<Double>();
         try {
             ClassLoader classLoader = SimulationDriver.class.getClassLoader();
             InputStream is = classLoader.getResourceAsStream(filename);
@@ -121,7 +121,7 @@ public class SimulationDriver {
 
             for (String serviceTimeStr : serviceTimesStr){
                 Double serviceTimeInMinutes = new Double (serviceTimeStr);
-                Integer serviceTimeInSeconds = (int) Math.round(serviceTimeInMinutes * 60);
+                Double serviceTimeInSeconds = serviceTimeInMinutes * 60;
                 serviceTimes.add(serviceTimeInSeconds);
             }
         } catch (Exception e){

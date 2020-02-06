@@ -10,7 +10,7 @@ public class Inspector extends Entity{
     private final int MAX_BUFFER_SIZE = 999;                                            //Maximum possible buffer size for a workbench, used when finding the workbench with the minimum current buffer value, this is ridiculously large compared to whats expected
     private final int SEED = 9;                                                         //Seed value for random number generator, useful for testing, by default not used.
     private HashMap<Component, ArrayList<WorkBench>> componentToWorkbenchMapping;       //A Mapping of components to workbenches ex. {C1: [W1, W2, W3], C2: [W2] ... }
-    private HashMap<Component, Queue<Integer>> componentServiceTimes;                   //A mapping of service time queues to components ex. {C1: [60, 120, 240], C2: [30, 45, ... }
+    private HashMap<Component, Queue<Double>> componentServiceTimes;                   //A mapping of service time queues to components ex. {C1: [60, 120, 240], C2: [30, 45, ... }
     private HashMap<WorkBench, Integer> workbenchPriorities;                            //A mapping of priorities to workbenches ex:. {W1: 1, W2: 2, W3: 3}
     private Component currentComponentUnderInspection;                                  //Current component under inspection
     private Random randomNumberGenerator;                                               //Random number generator
@@ -18,7 +18,7 @@ public class Inspector extends Entity{
     public Inspector (String name) {
         super(name);
         this.componentToWorkbenchMapping = new HashMap<Component, ArrayList<WorkBench>>();
-        this.componentServiceTimes = new HashMap<Component, Queue<Integer>>();
+        this.componentServiceTimes = new HashMap<Component, Queue<Double>>();
         this.workbenchPriorities = new HashMap<WorkBench, Integer>();
         this.randomNumberGenerator = new Random();
     }
@@ -29,9 +29,9 @@ public class Inspector extends Entity{
      * @param component
      * @param serviceTimes
      */
-    public void registerComponentServiceTimes(Component component, ArrayList<Integer> serviceTimes){
-        Queue<Integer> serviceTimeQueue = new LinkedList<Integer>();
-        for (Integer serviceTime : serviceTimes){
+    public void registerComponentServiceTimes(Component component, ArrayList<Double> serviceTimes){
+        Queue<Double> serviceTimeQueue = new LinkedList<Double>();
+        for (Double serviceTime : serviceTimes){
             serviceTimeQueue.add(serviceTime);
         }
         this.componentServiceTimes.put(component, serviceTimeQueue);
@@ -76,8 +76,8 @@ public class Inspector extends Entity{
      * @param interval
      */
     @Override
-    public void clockUpdate(Integer interval){
-        Integer serviceTimeRemaining = this.getServiceTimeRemaining();
+    public void clockUpdate(Double interval){
+        Double serviceTimeRemaining = this.getServiceTimeRemaining();
         EntityState currentState = this.getState();
         this.incrementStateTimer(currentState, interval);
 

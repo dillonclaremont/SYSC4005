@@ -7,14 +7,14 @@ import java.util.HashMap;
 public abstract class Entity {
     private String name;                                            //Name of entity
     private EntityState state;                                      //Current state, of type EntityState.
-    private HashMap<EntityState, Integer> stateTimer;               //A running counter of time spent at a given state (unit-less)
-    private Integer serviceTimeRemaining;                           //A running counter to track the time remaining for the current service interval
+    private HashMap<EntityState, Double> stateTimer;               //A running counter of time spent at a given state (unit-less)
+    private Double serviceTimeRemaining;                           //A running counter to track the time remaining for the current service interval
     private Integer servicesCompleted;                              //A running counter to track the Number of services that have been completed
 
     public Entity(String name){
         this.name = name;
         this.state = EntityState.INITIALIZED;
-        this.stateTimer = new HashMap<EntityState, Integer>();
+        this.stateTimer = new HashMap<EntityState, Double>();
         this.servicesCompleted = 0;
     }
 
@@ -50,7 +50,7 @@ public abstract class Entity {
      *
      * @param value
      */
-    protected void setServiceTimeRemaining(Integer value){
+    protected void setServiceTimeRemaining(Double value){
         this.serviceTimeRemaining = value;
     }
 
@@ -59,7 +59,7 @@ public abstract class Entity {
      *
      * @return
      */
-    protected Integer getServiceTimeRemaining(){
+    protected Double getServiceTimeRemaining(){
         return this.serviceTimeRemaining;
     }
 
@@ -68,7 +68,7 @@ public abstract class Entity {
      *
      * @param interval
      */
-    protected void decrementServiceTimeRemaining(Integer interval){
+    protected void decrementServiceTimeRemaining(Double interval){
         this.serviceTimeRemaining -= interval;
     }
 
@@ -92,9 +92,9 @@ public abstract class Entity {
      *
      * @return
      */
-    public Integer getTotalStateTime(){
-        Integer totalStateTime = 0;
-        for (Integer stateTime : this.stateTimer.values()){
+    public Double getTotalStateTime(){
+        Double totalStateTime = 0.0;
+        for (Double stateTime : this.stateTimer.values()){
             totalStateTime += stateTime;
         }
         return totalStateTime;
@@ -105,11 +105,11 @@ public abstract class Entity {
      * @param state
      * @return
      */
-    public Integer getStateTime(EntityState state){
+    public Double getStateTime(EntityState state){
         if (this.stateTimer.containsKey(state)){
             return this.stateTimer.get(state);
         }
-        return 0;
+        return 0.0;
     }
 
     /**
@@ -118,16 +118,16 @@ public abstract class Entity {
      * @param state
      * @param interval
      */
-    protected void incrementStateTimer(EntityState state, Integer interval){
+    protected void incrementStateTimer(EntityState state, Double interval){
         if(this.stateTimer.containsKey(state)){
-            Integer currentStateTime = this.stateTimer.get(state);
+            Double currentStateTime = this.stateTimer.get(state);
             currentStateTime += interval;
             this.stateTimer.put(state, currentStateTime);
         } else {
-            this.stateTimer.put(state, 0);
+            this.stateTimer.put(state, 0.0);
         }
     }
 
-    public abstract void clockUpdate(Integer interval);
+    public abstract void clockUpdate(Double interval);
     public abstract String produceReport();
 }

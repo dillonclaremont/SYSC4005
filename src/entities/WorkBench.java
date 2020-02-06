@@ -13,7 +13,7 @@ public class WorkBench extends Entity {
     private Product product;                                            //Type of product output by this WorkBench
     private int maxBufferSize;                                          //Maximum buffer size
     private HashMap<Component, Integer> componentBuffers;               //Mapping of buffer sizes for each component. Since this is a simulation, this only maintains the number of components that would be in a (theoretical) buffer
-    private Queue<Integer> serviceTimes;                                //A queue of service times
+    private Queue<Double> serviceTimes;                                 //A queue of service times
 
     public WorkBench(String name, Product product, int maxBufferSize){
         super(name);
@@ -27,9 +27,9 @@ public class WorkBench extends Entity {
      *
      * @param serviceTimes
      */
-    public void setServiceTimes(ArrayList<Integer> serviceTimes){
-        Queue<Integer> serviceTimeQueue = new LinkedList<Integer>();
-        for (Integer serviceTime : serviceTimes){
+    public void setServiceTimes(ArrayList<Double> serviceTimes){
+        Queue<Double> serviceTimeQueue = new LinkedList<Double>();
+        for (Double serviceTime : serviceTimes){
             serviceTimeQueue.add(serviceTime);
         }
         this.serviceTimes = serviceTimeQueue;
@@ -93,8 +93,8 @@ public class WorkBench extends Entity {
      * @param interval
      */
     @Override
-    public void clockUpdate(Integer interval){
-        Integer serviceTimeRemaining = this.getServiceTimeRemaining();
+    public void clockUpdate(Double interval){
+        Double serviceTimeRemaining = this.getServiceTimeRemaining();
         EntityState currentState = this.getState();
         this.incrementStateTimer(currentState, interval);
 

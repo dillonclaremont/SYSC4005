@@ -21,19 +21,23 @@ public class SimulationDriver {
         ArrayList<Entity> entities = init();
         boolean running = true;
 
+        //Run simulation until all entities are in either the DONE or BLOCKED state.
         while (running) {
-            ArrayList<EntityState> entityStates = new ArrayList<EntityState>();
+            ArrayList<EntityState> entityStates = new ArrayList<EntityState>();             //This is used track the states of all entities for each clock cycle
+
+            //Iterate through each entity and trigger the entity's clock to update
             for (Entity entity : entities) {
+                //Capture current state of entity
                 EntityState entityState = entity.getState();
                 entityStates.add(entityState);
+
+                //Only update clock for an entity that is not in the DONE state.
                 if (entityState != EntityState.DONE) {
                     entity.clockUpdate(CLOCK_INCREMENT_SIZE);
-                } else {
-                    // ?
                 }
             }
 
-            //Stop driving the simulation if all entities are either DONE or BLOCKED
+            //Stop driving the simulation if all entities are in the either DONE or BLOCKED state.
             running = false;
             for (EntityState entityState : entityStates){
                 if (entityState != EntityState.DONE && entityState != EntityState.BLOCKED) {
@@ -47,7 +51,9 @@ public class SimulationDriver {
     }
 
     private static void produceReport(ArrayList<Entity> entities){
-        System.out.println("Hello World");
+        for (Entity entity : entities){
+            System.out.println(entity.produceReport());
+        }
     }
 
     /**
@@ -58,21 +64,21 @@ public class SimulationDriver {
     private static ArrayList<Entity> init(){
         ArrayList<Entity> entities = new ArrayList<Entity>();
 
-        WorkBench workbenchOne = new WorkBench("W1", Product.P1, WORKBENCH_COMPONENT_BUFFER_SIZE);
+        WorkBench workbenchOne = new WorkBench("WorkBench1", Product.P1, WORKBENCH_COMPONENT_BUFFER_SIZE);
         workbenchOne.registerComponent(Component.C1);
         workbenchOne.setServiceTimes(readServiceTimeFile("resources/ws1.dat"));
 
-        WorkBench workbenchTwo = new WorkBench("W2", Product.P2, WORKBENCH_COMPONENT_BUFFER_SIZE);
+        WorkBench workbenchTwo = new WorkBench("WorkBench2", Product.P2, WORKBENCH_COMPONENT_BUFFER_SIZE);
         workbenchTwo.registerComponent(Component.C1);
         workbenchTwo.registerComponent(Component.C2);
         workbenchTwo.setServiceTimes(readServiceTimeFile("resources/ws2.dat"));
 
-        WorkBench workbenchThree = new WorkBench("W3", Product.P3, WORKBENCH_COMPONENT_BUFFER_SIZE);
+        WorkBench workbenchThree = new WorkBench("WorkBench3", Product.P3, WORKBENCH_COMPONENT_BUFFER_SIZE);
         workbenchThree.registerComponent(Component.C1);
         workbenchThree.registerComponent(Component.C3);
         workbenchThree.setServiceTimes(readServiceTimeFile("resources/ws3.dat"));
 
-        Inspector inspectorOne = new Inspector("I1");
+        Inspector inspectorOne = new Inspector("Inspector1");
         inspectorOne.registerComponentForWorkbench(Component.C1, workbenchOne);
         inspectorOne.registerComponentForWorkbench(Component.C1, workbenchTwo);
         inspectorOne.registerComponentForWorkbench(Component.C1, workbenchThree);
@@ -81,7 +87,7 @@ public class SimulationDriver {
         inspectorOne.registerWorkbenchPriority(workbenchThree, 3);
         inspectorOne.registerComponentServiceTimes(Component.C1, readServiceTimeFile("resources/servinsp1.dat"));
 
-        Inspector inspectorTwo = new Inspector("I2");
+        Inspector inspectorTwo = new Inspector("Inspector2");
         inspectorTwo.registerComponentForWorkbench(Component.C2, workbenchTwo);
         inspectorTwo.registerComponentForWorkbench(Component.C3, workbenchThree);
         inspectorTwo.registerWorkbenchPriority(workbenchTwo, 1);

@@ -92,6 +92,7 @@ public class WorkBench extends Entity {
      *
      * @param interval
      */
+    @Override
     public void clockUpdate(Integer interval){
         Integer serviceTimeRemaining = this.getServiceTimeRemaining();
         EntityState currentState = this.getState();
@@ -147,5 +148,13 @@ public class WorkBench extends Entity {
             componentBuffer--;
             this.componentBuffers.put(component, componentBuffer);
         }
+    }
+
+    @Override
+    public String produceReport(){
+        double productsAssembled = this.getServicesCompleted();
+        double overallTimeInHours = this.getTotalStateTime()/3600;
+        String result = String.format("[%s] Throughput (assembled products / hr): %.2f", this.getName(), (productsAssembled / overallTimeInHours));
+        return result;
     }
 }

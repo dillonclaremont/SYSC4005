@@ -75,6 +75,7 @@ public class Inspector extends Entity{
      *
      * @param interval
      */
+    @Override
     public void clockUpdate(Integer interval){
         Integer serviceTimeRemaining = this.getServiceTimeRemaining();
         EntityState currentState = this.getState();
@@ -169,5 +170,13 @@ public class Inspector extends Entity{
             }
         }
         return candidateWorkbench;
+    }
+
+    @Override
+    public String produceReport() {
+        double timeInBlockedState = this.getStateTime(EntityState.BLOCKED);
+        double overallTime = this.getTotalStateTime();
+        String result = String.format("[%s] Idle %%: %.2f  Total Blocked Time(mins): %.2f  Total Sim Time(mins): %.2f", this.getName(), (timeInBlockedState * 100/ overallTime), (timeInBlockedState/60), (overallTime/60));
+        return result;
     }
 }

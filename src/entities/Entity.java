@@ -19,6 +19,15 @@ public abstract class Entity {
     }
 
     /**
+     * Return name.
+     *
+     * @return
+     */
+    public String getName(){
+        return this.name;
+    }
+
+    /**
      * Sets state.
      *
      * @param state
@@ -79,6 +88,31 @@ public abstract class Entity {
     public Integer getServicesCompleted(){ return this.servicesCompleted; }
 
     /**
+     * Returns the total time spent across all states
+     *
+     * @return
+     */
+    public Integer getTotalStateTime(){
+        Integer totalStateTime = 0;
+        for (Integer stateTime : this.stateTimer.values()){
+            totalStateTime += stateTime;
+        }
+        return totalStateTime;
+    }
+
+    /**
+     * Returns the total time spent in a specific state
+     * @param state
+     * @return
+     */
+    public Integer getStateTime(EntityState state){
+        if (this.stateTimer.containsKey(state)){
+            return this.stateTimer.get(state);
+        }
+        return 0;
+    }
+
+    /**
      * Increment the global state timer.
      *
      * @param state
@@ -95,4 +129,5 @@ public abstract class Entity {
     }
 
     public abstract void clockUpdate(Integer interval);
+    public abstract String produceReport();
 }

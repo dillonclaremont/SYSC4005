@@ -176,7 +176,7 @@ public class Inspector extends Entity{
     public String produceReport() {
         double timeInBlockedState = this.getStateTime(EntityState.BLOCKED);
         double overallTime = this.getTotalStateTime();
-        String result = String.format("[%s] Idle %%: %.2f  Total Blocked Time(mins): %.2f  Total Sim Time(mins): %.2f", this.getName(), (timeInBlockedState * 100/ overallTime), (timeInBlockedState/60), (overallTime/60));
+        String result = String.format("[%s] Idle %%: %.2f  Total Blocked Time(mins): %.2f  Total Active Time(mins): %.2f", this.getName(), (timeInBlockedState * 100/ overallTime), (timeInBlockedState/60), (overallTime/60));
         return result;
     }
 }

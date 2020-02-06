@@ -7,7 +7,9 @@ import java.util.*;
 
 
 public class Inspector extends Entity{
-    private HashMap<Component, ArrayList<WorkBench>> componentWorkBenchHashMap;
+    private final int MAX_BUFFER_SIZE = 999;
+    private final int SEED = 9;
+    private HashMap<Component, ArrayList<WorkBench>> componentToWorkbenchMapping;
     private HashMap<Component, Queue<Integer>> componentServiceTimes;
     private Component currentComponentUnderInspection;
     private HashMap<WorkBench, Integer> workbenchPriorities;
@@ -15,7 +17,7 @@ public class Inspector extends Entity{
 
     public Inspector (String name) {
         super(name);
-        this.componentWorkBenchHashMap = new HashMap<Component, ArrayList<WorkBench>>();
+        this.componentToWorkbenchMapping = new HashMap<Component, ArrayList<WorkBench>>();
         this.componentServiceTimes = new HashMap<Component, Queue<Integer>>();
         this.workbenchPriorities = new HashMap<WorkBench, Integer>();
         this.randomNumberGenerator = new Random();
@@ -40,13 +42,13 @@ public class Inspector extends Entity{
      * @param workBench
      */
     public void registerComponentForWorkbench(Component component, WorkBench workBench){
-        if (this.componentWorkBenchHashMap.containsKey(component)){
-            ArrayList<WorkBench> workBenches = this.componentWorkBenchHashMap.get(component);
+        if (this.componentToWorkbenchMapping.containsKey(component)){
+            ArrayList<WorkBench> workBenches = this.componentToWorkbenchMapping.get(component);
             workBenches.add(workBench);
         } else {
             ArrayList<WorkBench> workBenches = new ArrayList<WorkBench>();
             workBenches.add(workBench);
-            this.componentWorkBenchHashMap.put(component, workBenches);
+            this.componentToWorkbenchMapping.put(component, workBenches);
         }
     }
 
@@ -64,14 +66,14 @@ public class Inspector extends Entity{
      * @param interval
      */
     public void clockUpdate(Integer interval){
-        Integer serviceTimeRemaining = super.getServiceTimeRemaining();
+        Integer serviceTimeRemaining = this.getServiceTimeRemaining();
         EntityState currentState = this.getState();
         this.incrementStateTimer(currentState, interval);
 
         if (currentState == EntityState.ACTIVE && (serviceTimeRemaining <= 0)){
             this.attemptToPutComponentOnWorkbench();
         } else if (currentState == EntityState.ACTIVE && (serviceTimeRemaining > 0)){
-            super.decrementServiceTimeRemaining(interval);
+            this.decrementServiceTimeRemaining(interval);
         } else if (currentState == EntityState.BLOCKED){
             this.attemptToPutComponentOnWorkbench();
         } else if (currentState == EntityState.DONE) {
@@ -89,20 +91,23 @@ public class Inspector extends Entity{
      * @return
      */
     private void getNextComponentToInspect(){
-        if(this.componentWorkBenchHashMap.keySet().size() == 1){
-            this.currentComponentUnderInspection = new ArrayList<Component>(componentWorkBenchHashMap.keySet()).get(0);
+        if(this.componentToWorkbenchMapping.keySet().size() == 1){
+            this.currentComponentUnderInspection = new ArrayList<Component>(componentToWorkbenchMapping.keySet()).get(0);
             this.setComponentServiceTime();
         } else {
-            Integer randomComponentIndex = randomNumberGenerator.nextInt(this.componentWorkBenchHashMap.keySet().size());
-            this.currentComponentUnderInspection = new ArrayList<Component>(componentWorkBenchHashMap.keySet()).get(randomComponentIndex);
+            Integer randomComponentIndex = randomNumberGenerator.nextInt(this.componentToWorkbenchMapping.keySet().size());
+            this.currentComponentUnderInspection = new ArrayList<Component>(componentToWorkbenchMapping.keySet()).get(randomComponentIndex);
             this.setComponentServiceTime();
         }
     }
 
+    /**
+     *
+     */
     private void setComponentServiceTime(){
         if (!this.componentServiceTimes.get(this.currentComponentUnderInspection).isEmpty()) {
             this.setState(EntityState.ACTIVE);
-            super.setServiceTimeRemaining(this.componentServiceTimes.get(this.currentComponentUnderInspection).remove());
+            this.setServiceTimeRemaining(this.componentServiceTimes.get(this.currentComponentUnderInspection).remove());
         } else {
             this.setState(EntityState.DONE);
         }
@@ -110,18 +115,16 @@ public class Inspector extends Entity{
 
     /**
      * Determines whether any workbenches are able to take the component (assumed to have
-     * been inspected by this point).If not, Inspector state is set to BLOCKED.
+     * been inspected by this point). If successful, updates the Inspector state accordingly.
+     * If not, Inspector state is set to BLOCKED.
      *
      * @return
      */
     private void attemptToPutComponentOnWorkbench(){
-        //Try to put component on a workbench
-        //if successful get next component service time
-        //else update inspectors state to blocked
         WorkBench workbench = getNextWorkBench();
         if (workbench != null) {
             workbench.addComponent(this.currentComponentUnderInspection);
-            super.incrementServicesCompleted();
+            this.incrementServicesCompleted();
             this.getNextComponentToInspect();
         } else {
             this.setState(EntityState.BLOCKED);
@@ -135,7 +138,7 @@ public class Inspector extends Entity{
      * @return
      */
     private WorkBench getNextWorkBench(){
-        int minBufferSize = 999;
+        int minBufferSize = MAX_BUFFER_SIZE;
         WorkBench candidateWorkbench = null;
 
         for (WorkBench workbench : this.workbenchPriorities.keySet()){

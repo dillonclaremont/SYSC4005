@@ -2,7 +2,6 @@ package entities;
 
 import globals.EntityState;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public abstract class Entity {

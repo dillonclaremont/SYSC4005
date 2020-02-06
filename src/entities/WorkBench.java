@@ -76,17 +76,17 @@ public class WorkBench extends Entity {
     }
     
     public void clockUpdate(Integer interval){
-        Integer serviceTimeRemaining = super.getServiceTimeRemaining();
+        Integer serviceTimeRemaining = this.getServiceTimeRemaining();
         EntityState currentState = this.getState();
         this.incrementStateTimer(currentState, interval);
 
         if (currentState == EntityState.ACTIVE && (serviceTimeRemaining <= 0)){
             //remove 1 component from each component buffers
             this.completeAssembledProduct();
-            super.incrementServicesCompleted();
+            this.incrementServicesCompleted();
             this.attemptToAssembleProduct();
         } else if (currentState == EntityState.ACTIVE && (serviceTimeRemaining > 0)){
-            super.decrementServiceTimeRemaining(interval);
+            this.decrementServiceTimeRemaining(interval);
         } else if (currentState == EntityState.BLOCKED){
             this.attemptToAssembleProduct();
         } else if (currentState == EntityState.DONE) {
@@ -97,6 +97,11 @@ public class WorkBench extends Entity {
         }
     }
 
+    /**
+     * Checks the component buffers to ensure at least one of each component is available, necessary to assemble a product.
+     * If the necessary components are available, sets the state of the WorkBench to ACTIVE and selects the next service time
+     * from the pre generated list of service times.
+     */
     private void attemptToAssembleProduct(){
         boolean componentsAvailableToAssembleProduct = true;
 
@@ -109,12 +114,16 @@ public class WorkBench extends Entity {
 
         if (componentsAvailableToAssembleProduct){
             this.setState(EntityState.ACTIVE);
-            super.setServiceTimeRemaining(this.serviceTimes.remove());
+            this.setServiceTimeRemaining(this.serviceTimes.remove());
         } else {
             this.setState(EntityState.BLOCKED);
         }
     }
 
+    /**
+     * To simulate a completed assembled product, simply decrement the component buffers.
+     *
+     */
     private void completeAssembledProduct(){
         for (Component component : this.componentBuffers.keySet()){
             Integer componentBuffer = this.componentBuffers.get(component);

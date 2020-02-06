@@ -7,7 +7,6 @@ import globals.Product;
 
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class SimulationDriver {
     private static final int WORKBENCH_COMPONENT_BUFFER_SIZE = 2;
@@ -43,8 +42,12 @@ public class SimulationDriver {
             }
         }
 
+        produceReport(entities);
     }
 
+    private static void produceReport(ArrayList<Entity> entities){
+        System.out.println("Hello World");
+    }
     /**
      * Initialize all components.
      *

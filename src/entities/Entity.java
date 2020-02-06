@@ -5,11 +5,11 @@ import globals.EntityState;
 import java.util.HashMap;
 
 public abstract class Entity {
-    private String name;
-    private EntityState state;
-    private HashMap<EntityState, Integer> stateTimer;
-    private Integer serviceTimeRemaining;
-    private Integer servicesCompleted;
+    private String name;                                            //Name of entity
+    private EntityState state;                                      //Current state, of type EntityState.
+    private HashMap<EntityState, Integer> stateTimer;               //A running counter of time spent at a given state (unit-less)
+    private Integer serviceTimeRemaining;                           //A running counter to track the time remaining for the current service interval
+    private Integer servicesCompleted;                              //A running counter to track the Number of services that have been completed
 
     public Entity(String name){
         this.name = name;
@@ -20,6 +20,7 @@ public abstract class Entity {
 
     /**
      * Sets state.
+     *
      * @param state
      */
     protected void setState(EntityState state){
@@ -37,6 +38,7 @@ public abstract class Entity {
 
     /**
      * Set service time remaining.
+     *
      * @param value
      */
     protected void setServiceTimeRemaining(Integer value){
@@ -45,6 +47,7 @@ public abstract class Entity {
 
     /**
      * Get the service time reamining.
+     *
      * @return
      */
     protected Integer getServiceTimeRemaining(){
@@ -53,6 +56,7 @@ public abstract class Entity {
 
     /**
      * Decrement service timer.
+     *
      * @param interval
      */
     protected void decrementServiceTimeRemaining(Integer interval){
@@ -61,13 +65,22 @@ public abstract class Entity {
 
     /**
      * Increment service completion counter.
+     *
      */
     protected void incrementServicesCompleted(){
         this.servicesCompleted ++;
     }
 
     /**
+     * Return the number of services completed for this entity.
+     *
+     * @return
+     */
+    public Integer getServicesCompleted(){ return this.servicesCompleted; }
+
+    /**
      * Increment the global state timer.
+     *
      * @param state
      * @param interval
      */

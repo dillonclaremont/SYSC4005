@@ -14,6 +14,7 @@ public class SimulationDriver {
 
     /**
      * Simulation Driver.
+     *
      * @param args
      */
     public static void main(String args[]){
@@ -48,6 +49,7 @@ public class SimulationDriver {
     private static void produceReport(ArrayList<Entity> entities){
         System.out.println("Hello World");
     }
+
     /**
      * Initialize all components.
      *

@@ -7,13 +7,13 @@ import java.util.*;
 
 
 public class Inspector extends Entity{
-    private final int MAX_BUFFER_SIZE = 999;
-    private final int SEED = 9;
-    private HashMap<Component, ArrayList<WorkBench>> componentToWorkbenchMapping;
-    private HashMap<Component, Queue<Integer>> componentServiceTimes;
-    private Component currentComponentUnderInspection;
-    private HashMap<WorkBench, Integer> workbenchPriorities;
-    private Random randomNumberGenerator;
+    private final int MAX_BUFFER_SIZE = 999;                                            //Maximum possible buffer size for a workbench, used when finding the workbench with the minimum current buffer value, this is ridiculously large compared to whats expected
+    private final int SEED = 9;                                                         //Seed value for random number generator, useful for testing, by default not used.
+    private HashMap<Component, ArrayList<WorkBench>> componentToWorkbenchMapping;       //A Mapping of components to workbenches ex. {C1: [W1, W2, W3], C2: [W2] ... }
+    private HashMap<Component, Queue<Integer>> componentServiceTimes;                   //A mapping of service time queues to components ex. {C1: [60, 120, 240], C2: [30, 45, ... }
+    private HashMap<WorkBench, Integer> workbenchPriorities;                            //A mapping of priorities to workbenches ex:. {W1: 1, W2: 2, W3: 3}
+    private Component currentComponentUnderInspection;                                  //Current component under inspection
+    private Random randomNumberGenerator;                                               //Random number generator
 
     public Inspector (String name) {
         super(name);
@@ -65,6 +65,13 @@ public class Inspector extends Entity{
     }
 
     /**
+     * This method updates the clock by 'interval'. State is updated accordingly for the Inspector.
+     * Starts by updating the state timer.
+     * Based on the current state of the Inspector the following behaviour is exhibited:
+     *  - If the inspector is currently inspecting a component, decrement service time counter
+     *  - If the inspector has just finished inspecting a component, attempt to put on a workbench
+     *  - If the inspector is blocked (has finished inspecting a component but there was no available workbench) attempts to place on workbench again
+     *  - If none of the above is true, must be the first case and simply gets the next component to inspect.
      *
      * @param interval
      */
@@ -95,11 +102,11 @@ public class Inspector extends Entity{
      */
     private void getNextComponentToInspect(){
         if(this.componentToWorkbenchMapping.keySet().size() == 1){
-            this.currentComponentUnderInspection = new ArrayList<Component>(componentToWorkbenchMapping.keySet()).get(0);
+            this.currentComponentUnderInspection = new ArrayList<Component>(this.componentToWorkbenchMapping.keySet()).get(0);
             this.setComponentServiceTime();
         } else {
             Integer randomComponentIndex = randomNumberGenerator.nextInt(this.componentToWorkbenchMapping.keySet().size());
-            this.currentComponentUnderInspection = new ArrayList<Component>(componentToWorkbenchMapping.keySet()).get(randomComponentIndex);
+            this.currentComponentUnderInspection = new ArrayList<Component>(this.componentToWorkbenchMapping.keySet()).get(randomComponentIndex);
             this.setComponentServiceTime();
         }
     }

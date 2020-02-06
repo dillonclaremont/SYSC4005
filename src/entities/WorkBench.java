@@ -10,10 +10,10 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 public class WorkBench extends Entity {
-    private Product product;
-    private int maxBufferSize;
-    private HashMap<Component, Integer> componentBuffers;
-    private Queue<Integer> serviceTimes;
+    private Product product;                                            //Type of product output by this WorkBench
+    private int maxBufferSize;                                          //Maximum buffer size
+    private HashMap<Component, Integer> componentBuffers;               //Mapping of buffer sizes for each component. Since this is a simulation, this only maintains the number of components that would be in a (theoretical) buffer
+    private Queue<Integer> serviceTimes;                                //A queue of service times
 
     public WorkBench(String name, Product product, int maxBufferSize){
         super(name);
@@ -23,6 +23,7 @@ public class WorkBench extends Entity {
     }
 
     /**
+     * Registration method to initialize a Workbench. Adds a list of service times for the workbench.
      *
      * @param serviceTimes
      */
@@ -35,6 +36,7 @@ public class WorkBench extends Entity {
     }
 
     /**
+     * Registration method to configure this Workbench for a specific component type
      *
      * @param component
      */
@@ -43,6 +45,7 @@ public class WorkBench extends Entity {
     }
 
     /**
+     * Returns the current size of the buffer for a specific component. The "size" of the buffer indicates the "number" of components that would be in the buffer at the time of query.
      *
      * @param component
      * @return
@@ -52,29 +55,43 @@ public class WorkBench extends Entity {
     }
 
     /**
+     * Places a component in the corresponding component buffer, only if buffer is less than maxBufferSize.
      *
      * @param component
      */
     public void addComponent(Component component){
-        Integer componentBuffer = this.componentBuffers.get(component);
-        componentBuffer ++;
-        this.componentBuffers.put(component, componentBuffer);
+        if (this.componentBuffers.get(component) < this.maxBufferSize) {
+            Integer componentBuffer = this.componentBuffers.get(component);
+            componentBuffer++;
+            this.componentBuffers.put(component, componentBuffer);
+        }
     }
 
     /**
+     * Query whether room in the buffer is available for a given component.
      *
      * @param component
      * @return
      */
     public boolean bufferAvailable(Component component){
         if (this.componentBuffers.containsKey(component) && (this.componentBuffers.get(component) < maxBufferSize)){
-        //if (this.componentBuffers.get(component) < maxBufferSize){
             return true;
         } else {
             return false;
         }
     }
-    
+
+    /**
+     * This method updates the clock by 'interval'. State is updated accordingly for the Workbench.
+     * Starts by updating the state timer.
+     * Based on the current state of the WorkBench the following behaviour is exhibited:
+     *  - If the WorkBench is currently assembling a product, decrement service time counter
+     *  - If the WorkBench has just finished assembling a product, removes components from buffers, increments completion counter and attempts to assemble another product
+     *  - If the WorkBench is blocked (did not have enough components to begin assembly of a product on the last clock update), attempts to assemble another product
+     *  - If none of the above is true, must be the first case and simply attempts to assemble a product
+     *
+     * @param interval
+     */
     public void clockUpdate(Integer interval){
         Integer serviceTimeRemaining = this.getServiceTimeRemaining();
         EntityState currentState = this.getState();

@@ -24,6 +24,7 @@ public class Inspector extends Entity{
     }
 
     /**
+     * Registration method to initialize an Inspector. Maps a list of service times for a specific component.
      *
      * @param component
      * @param serviceTimes
@@ -37,6 +38,7 @@ public class Inspector extends Entity{
     }
 
     /**
+     * Registration method to map components to Workbenches.
      *
      * @param component
      * @param workBench
@@ -53,6 +55,7 @@ public class Inspector extends Entity{
     }
 
     /**
+     * Registration method to map priorites to maps. Lower integer values represent higher priorities.
      *
      * @param workBench
      * @param priority
@@ -102,6 +105,8 @@ public class Inspector extends Entity{
     }
 
     /**
+     * Use the currentComponentUnderInspection value, to the state Inspector state, and get the service time.
+     * If there are no service times remaining for this Inspector, then state is DONE.
      *
      */
     private void setComponentServiceTime(){

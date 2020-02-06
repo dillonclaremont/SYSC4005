@@ -5,12 +5,11 @@ import globals.EntityState;
 
 import java.util.*;
 
-
 public class Inspector extends Entity{
     private final int MAX_BUFFER_SIZE = 999;                                            //Maximum possible buffer size for a workbench, used when finding the workbench with the minimum current buffer value, this is ridiculously large compared to whats expected
     private final int SEED = 9;                                                         //Seed value for random number generator, useful for testing, by default not used.
     private HashMap<Component, ArrayList<WorkBench>> componentToWorkbenchMapping;       //A Mapping of components to workbenches ex. {C1: [W1, W2, W3], C2: [W2] ... }
-    private HashMap<Component, Queue<Double>> componentServiceTimes;                   //A mapping of service time queues to components ex. {C1: [60, 120, 240], C2: [30, 45, ... }
+    private HashMap<Component, Queue<Double>> componentServiceTimes;                    //A mapping of service time queues to components ex. {C1: [60, 120, 240], C2: [30, 45, ... }
     private HashMap<WorkBench, Integer> workbenchPriorities;                            //A mapping of priorities to workbenches ex:. {W1: 1, W2: 2, W3: 3}
     private Component currentComponentUnderInspection;                                  //Current component under inspection
     private Random randomNumberGenerator;                                               //Random number generator
@@ -176,7 +175,7 @@ public class Inspector extends Entity{
     public String produceReport() {
         double timeInBlockedState = this.getStateTime(EntityState.BLOCKED);
         double overallTime = this.getTotalStateTime();
-        String result = String.format("[%s] Idle %%: %.2f  Total Blocked Time(mins): %.2f  Total Active Time(mins): %.2f", this.getName(), (timeInBlockedState * 100/ overallTime), (timeInBlockedState/60), (overallTime/60));
+        String result = String.format("[%s]  Idle %%: %.2f  TotalInspections: %d TotalBlockedTime(mins): %.2f  TotalActiveTime(mins): %.2f", this.getName(), (timeInBlockedState * 100/ overallTime), this.getServicesCompleted(), (timeInBlockedState/60), (overallTime/60));
         return result;
     }
 }

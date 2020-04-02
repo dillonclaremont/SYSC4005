@@ -1,7 +1,7 @@
 import entities.Entity;
 import entities.Inspector;
 import entities.WorkBench;
-import globals.Component;
+import globals.ComponentName;
 import globals.EntityState;
 import globals.Product;
 
@@ -54,6 +54,8 @@ public class SimulationDriver {
         for (Entity entity : entities){
             System.out.println(entity.produceReport());
         }
+
+
     }
 
     /**
@@ -65,35 +67,35 @@ public class SimulationDriver {
         ArrayList<Entity> entities = new ArrayList<Entity>();
 
         WorkBench workbenchOne = new WorkBench("WorkBench1", Product.P1, WORKBENCH_COMPONENT_BUFFER_SIZE);
-        workbenchOne.registerComponent(Component.C1);
+        workbenchOne.registerComponent(ComponentName.C1);
         workbenchOne.setServiceTimes(readServiceTimeFile("resources/ws1.dat"));
 
         WorkBench workbenchTwo = new WorkBench("WorkBench2", Product.P2, WORKBENCH_COMPONENT_BUFFER_SIZE);
-        workbenchTwo.registerComponent(Component.C1);
-        workbenchTwo.registerComponent(Component.C2);
+        workbenchTwo.registerComponent(ComponentName.C1);
+        workbenchTwo.registerComponent(ComponentName.C2);
         workbenchTwo.setServiceTimes(readServiceTimeFile("resources/ws2.dat"));
 
         WorkBench workbenchThree = new WorkBench("WorkBench3", Product.P3, WORKBENCH_COMPONENT_BUFFER_SIZE);
-        workbenchThree.registerComponent(Component.C1);
-        workbenchThree.registerComponent(Component.C3);
+        workbenchThree.registerComponent(ComponentName.C1);
+        workbenchThree.registerComponent(ComponentName.C3);
         workbenchThree.setServiceTimes(readServiceTimeFile("resources/ws3.dat"));
 
         Inspector inspectorOne = new Inspector("Inspector1");
-        inspectorOne.registerComponentForWorkbench(Component.C1, workbenchOne);
-        inspectorOne.registerComponentForWorkbench(Component.C1, workbenchTwo);
-        inspectorOne.registerComponentForWorkbench(Component.C1, workbenchThree);
+        inspectorOne.registerComponentForWorkbench(ComponentName.C1, workbenchOne);
+        inspectorOne.registerComponentForWorkbench(ComponentName.C1, workbenchTwo);
+        inspectorOne.registerComponentForWorkbench(ComponentName.C1, workbenchThree);
         inspectorOne.registerWorkbenchPriority(workbenchOne, 1);
         inspectorOne.registerWorkbenchPriority(workbenchTwo, 2);
         inspectorOne.registerWorkbenchPriority(workbenchThree, 3);
-        inspectorOne.registerComponentServiceTimes(Component.C1, readServiceTimeFile("resources/servinsp1.dat"));
+        inspectorOne.registerComponentServiceTimes(ComponentName.C1, readServiceTimeFile("resources/servinsp1.dat"));
 
         Inspector inspectorTwo = new Inspector("Inspector2");
-        inspectorTwo.registerComponentForWorkbench(Component.C2, workbenchTwo);
-        inspectorTwo.registerComponentForWorkbench(Component.C3, workbenchThree);
+        inspectorTwo.registerComponentForWorkbench(ComponentName.C2, workbenchTwo);
+        inspectorTwo.registerComponentForWorkbench(ComponentName.C3, workbenchThree);
         inspectorTwo.registerWorkbenchPriority(workbenchTwo, 1);
         inspectorTwo.registerWorkbenchPriority(workbenchThree, 2);
-        inspectorTwo.registerComponentServiceTimes(Component.C2, readServiceTimeFile("resources/servinsp22.dat"));
-        inspectorTwo.registerComponentServiceTimes(Component.C3, readServiceTimeFile("resources/servinsp23.dat"));
+        inspectorTwo.registerComponentServiceTimes(ComponentName.C2, readServiceTimeFile("resources/servinsp22.dat"));
+        inspectorTwo.registerComponentServiceTimes(ComponentName.C3, readServiceTimeFile("resources/servinsp23.dat"));
 
         entities.add(inspectorOne);
         entities.add(inspectorTwo);
@@ -117,7 +119,7 @@ public class SimulationDriver {
             InputStream is = classLoader.getResourceAsStream(filename);
 
             //Read File Content
-            String[] serviceTimesStr = new String(is.readAllBytes()).split("\r\n");
+            String[] serviceTimesStr = new String(is.readAllBytes()).split("\n");
 
             for (String serviceTimeStr : serviceTimesStr){
                 Double serviceTimeInMinutes = new Double (serviceTimeStr);

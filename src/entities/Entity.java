@@ -10,12 +10,14 @@ public abstract class Entity {
     private HashMap<EntityState, Double> stateTimer;               //A running counter of time spent at a given state (unit-less)
     private Double serviceTimeRemaining;                           //A running counter to track the time remaining for the current service interval
     private Integer servicesCompleted;                              //A running counter to track the Number of services that have been completed
+    protected Double clock;
 
     public Entity(String name){
         this.name = name;
         this.state = EntityState.INITIALIZED;
         this.stateTimer = new HashMap<EntityState, Double>();
         this.servicesCompleted = 0;
+        this.clock = 0.0;
     }
 
     /**

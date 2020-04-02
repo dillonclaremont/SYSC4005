@@ -2,6 +2,7 @@ package entities;
 
 import globals.ComponentName;
 import globals.EntityState;
+import globals.EntityType;
 
 import java.util.*;
 
@@ -14,8 +15,10 @@ public class Inspector extends Entity{
     private ComponentName currentComponentNameUnderInspection;                          //Current component under inspection
     private Random randomNumberGenerator;                                               //Random number generator
 
+
     public Inspector (String name) {
         super(name);
+        this.entityType = EntityType.INSPECTOR;
         this.componentToWorkbenchMapping = new HashMap<ComponentName, ArrayList<WorkBench>>();
         this.componentServiceTimes = new HashMap<ComponentName, Queue<Double>>();
         this.workbenchPriorities = new HashMap<WorkBench, Integer>();
@@ -79,6 +82,7 @@ public class Inspector extends Entity{
         Double serviceTimeRemaining = this.getServiceTimeRemaining();
         EntityState currentState = this.getState();
         this.incrementStateTimer(currentState, interval);
+        this.clock += interval;
 
         if (currentState == EntityState.ACTIVE && (serviceTimeRemaining <= 0)){
             this.attemptToPutComponentOnWorkbench();
@@ -92,6 +96,9 @@ public class Inspector extends Entity{
             //This should only be entered in the first clock update.
             this.getNextComponentToInspect();
         }
+
+        //Sample the component buffers
+        this.sampleComponentBuffers();
     }
 
     /**
@@ -101,14 +108,44 @@ public class Inspector extends Entity{
      * @return
      */
     private void getNextComponentToInspect(){
-        if(this.componentToWorkbenchMapping.keySet().size() == 1){
-            this.currentComponentNameUnderInspection = new ArrayList<ComponentName>(this.componentToWorkbenchMapping.keySet()).get(0);
-            this.setComponentServiceTime();
-        } else {
-            Integer randomComponentIndex = randomNumberGenerator.nextInt(this.componentToWorkbenchMapping.keySet().size());
-            this.currentComponentNameUnderInspection = new ArrayList<ComponentName>(this.componentToWorkbenchMapping.keySet()).get(randomComponentIndex);
-            this.setComponentServiceTime();
+        ComponentName componentName;
+
+        //Determine which component will be inspected (if there are multiple components this inspector can inspect, pick one at random
+        Integer componentIndex = 0;
+        if(!(this.componentToWorkbenchMapping.keySet().size() == 1)){
+            componentIndex = randomNumberGenerator.nextInt(this.componentToWorkbenchMapping.keySet().size());
         }
+        componentName = new ArrayList<ComponentName>(this.componentToWorkbenchMapping.keySet()).get(componentIndex);
+
+        //Create the new component, initialize inspector arrival time as current time, and interarrival time as the time since
+        //the last (same type) component arrival time occurred
+        Component component = new Component(componentName);
+        if (!this.lastArrivedComponent.containsKey(componentName)){
+            component.setInterArrivalTime(this.entityType, this.clock);
+        } else {
+            Component lastComponent = this.lastArrivedComponent.get(componentName);
+            component.setInterArrivalTime(this.entityType, this.clock - lastComponent.getArrivalTime(this.entityType));
+        }
+
+        //Set component Inspector arrival time as the current clock time
+        component.setArrivalTime(this.entityType, this.clock);
+
+        //Ensure that component buffer is cleared before adding the current component, this is because an inspector can only inspect
+        //one component at a time
+        ArrayList<Component> componentBuffer = this.componentBuffers.get(componentName);
+        if (componentBuffer.size() > 0) {
+            componentBuffer.remove(0);
+        }
+        componentBuffer.add(component);
+
+        //Update currentComponentNameUnderInspection, this is used to help maintain state
+        this.currentComponentNameUnderInspection = componentName;
+
+        //Set the new component as the lastArrivedComponent
+        this.lastArrivedComponent.put(componentName, component);
+
+        //Get the service time for this component
+        this.setComponentServiceTime();
     }
 
     /**
@@ -135,7 +172,19 @@ public class Inspector extends Entity{
     private void attemptToPutComponentOnWorkbench(){
         WorkBench workbench = getNextWorkBench();
         if (workbench != null) {
-            workbench.addComponent(this.currentComponentNameUnderInspection);
+            Component component = this.componentBuffers.get(this.currentComponentNameUnderInspection).remove(0);
+            component.removeComponentFromSystem(this.entityType, this.clock);
+            workbench.addComponent(component);
+
+            //Add this component to the Inspector's completed components collection
+            ComponentName componentName = component.getComponentName();
+            if(!this.completedComponents.containsKey(componentName)){
+                this.completedComponents.put(componentName, new ArrayList<Component>());
+            }
+            ArrayList<Component> completedComponents = this.completedComponents.get(componentName);
+            completedComponents.add(component);
+
+
             this.incrementServicesCompleted();
             this.getNextComponentToInspect();
         } else {
@@ -175,7 +224,9 @@ public class Inspector extends Entity{
     public String produceReport() {
         double timeInBlockedState = this.getStateTime(EntityState.BLOCKED);
         double overallTime = this.getTotalStateTime();
-        String result = String.format("[%s]  Idle %%: %.2f  TotalInspections: %d TotalBlockedTime(mins): %.2f  TotalActiveTime(mins): %.2f", this.getName(), (timeInBlockedState * 100/ overallTime), this.getServicesCompleted(), (timeInBlockedState/60), (overallTime/60));
-        return result;
+        StringBuilder result = new StringBuilder();
+        result.append(String.format("[%s]  Idle %%: %.2f  TotalInspections: %d TotalBlockedTime(mins): %.2f  TotalActiveTime(mins): %.2f", this.getName(), (timeInBlockedState * 100/ overallTime), this.getServicesCompleted(), (timeInBlockedState/60), (overallTime/60)));
+        result.append(this.calculateLittlesLaw());
+        return result.toString();
     }
 }

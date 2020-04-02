@@ -1,3 +1,4 @@
+import entities.Component;
 import entities.Entity;
 import entities.Inspector;
 import entities.WorkBench;
@@ -81,6 +82,7 @@ public class SimulationDriver {
         workbenchThree.setServiceTimes(readServiceTimeFile("resources/ws3.dat"));
 
         Inspector inspectorOne = new Inspector("Inspector1");
+        inspectorOne.registerComponent(ComponentName.C1);
         inspectorOne.registerComponentForWorkbench(ComponentName.C1, workbenchOne);
         inspectorOne.registerComponentForWorkbench(ComponentName.C1, workbenchTwo);
         inspectorOne.registerComponentForWorkbench(ComponentName.C1, workbenchThree);
@@ -90,6 +92,8 @@ public class SimulationDriver {
         inspectorOne.registerComponentServiceTimes(ComponentName.C1, readServiceTimeFile("resources/servinsp1.dat"));
 
         Inspector inspectorTwo = new Inspector("Inspector2");
+        inspectorTwo.registerComponent(ComponentName.C2);
+        inspectorTwo.registerComponent(ComponentName.C3);
         inspectorTwo.registerComponentForWorkbench(ComponentName.C2, workbenchTwo);
         inspectorTwo.registerComponentForWorkbench(ComponentName.C3, workbenchThree);
         inspectorTwo.registerWorkbenchPriority(workbenchTwo, 1);

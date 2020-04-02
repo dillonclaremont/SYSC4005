@@ -1,16 +1,25 @@
 package entities;
 
+import globals.ComponentName;
 import globals.EntityState;
+import globals.EntityType;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public abstract class Entity {
     private String name;                                            //Name of entity
     private EntityState state;                                      //Current state, of type EntityState.
+    protected EntityType entityType;
     private HashMap<EntityState, Double> stateTimer;               //A running counter of time spent at a given state (unit-less)
     private Double serviceTimeRemaining;                           //A running counter to track the time remaining for the current service interval
     private Integer servicesCompleted;                              //A running counter to track the Number of services that have been completed
+    protected HashMap<ComponentName, ArrayList<Component>> componentBuffers;           //Mapping of buffer sizes for each component. Since this is a simulation, this only maintains the number of components that would be in a (theoretical) buffer
+    protected HashMap<ComponentName, ArrayList<Integer>> componentBufferSamples;
+    protected HashMap<ComponentName, ArrayList<Component>> completedComponents;
+    protected HashMap<ComponentName, Component> lastArrivedComponent;
     protected Double clock;
+
 
     public Entity(String name){
         this.name = name;
@@ -18,6 +27,10 @@ public abstract class Entity {
         this.stateTimer = new HashMap<EntityState, Double>();
         this.servicesCompleted = 0;
         this.clock = 0.0;
+        this.componentBufferSamples = new HashMap<ComponentName, ArrayList<Integer>>();
+        this.completedComponents = new HashMap<ComponentName, ArrayList<Component>>();
+        this.componentBuffers = new HashMap<ComponentName, ArrayList<Component>>();
+        this.lastArrivedComponent = new HashMap<ComponentName, Component>();
     }
 
     /**
@@ -127,6 +140,63 @@ public abstract class Entity {
             this.stateTimer.put(state, currentStateTime);
         } else {
             this.stateTimer.put(state, 0.0);
+        }
+    }
+
+    /**
+     * Registration method to configure this Workbench for a specific component type
+     *
+     * @param componentName
+     */
+    public void registerComponent(ComponentName componentName){
+        this.componentBuffers.put(componentName, new ArrayList<Component>());
+        this.componentBufferSamples.put(componentName, new ArrayList<Integer>());
+    }
+
+    public String calculateLittlesLaw(){
+        StringBuilder result = new StringBuilder();
+        for (ComponentName componentName : this.completedComponents.keySet()){
+            Double avgArrivalRate = 1/(this.getAvgInterArrivalTime(componentName)/3600); //arrival rate is 1/avgInterArrivalTime convert to minutes
+            Double avgSystemTime = this.getAvgSystemTime(componentName)/3600; //convert to minutes
+            Double averageNumberInSystem = this.getAvgNumberInSystem(componentName);
+            result.append(String.format("\n\t [%s] avgNumInSystem: %.2f,  avgArrivalRate: %.2f, avgSystemTime: %.2f", componentName, averageNumberInSystem, avgArrivalRate, avgSystemTime));
+            result.append(String.format("\n\t Little's Law: %.2f=%.2f", averageNumberInSystem, avgArrivalRate*avgSystemTime));
+        }
+        return result.toString();
+    }
+
+    private Double getAvgInterArrivalTime(ComponentName componentName){
+        Double sumInterArrivalTimes = 0.0;
+        ArrayList<Component> completedComponents = this.completedComponents.get(componentName);
+        for (Component component : completedComponents){
+            sumInterArrivalTimes += component.getInterArrivalTime(this.entityType);
+        }
+        return (sumInterArrivalTimes/completedComponents.size());
+    }
+
+    private Double getAvgSystemTime(ComponentName componentName){
+        Double sumSystemTimes = 0.0;
+        ArrayList<Component> completedComponents = this.completedComponents.get(componentName);
+        for (Component component : completedComponents){
+            sumSystemTimes += component.getSystemTime(this.entityType);
+        }
+        return sumSystemTimes/completedComponents.size();
+    }
+
+    private Double getAvgNumberInSystem(ComponentName componentName){
+        Double sumBufferSample = 0.0;
+        ArrayList<Integer> componentBufferSamples = this.componentBufferSamples.get(componentName);
+        for (Integer componentBufferSample : componentBufferSamples){
+            sumBufferSample += componentBufferSample;
+        }
+        return sumBufferSample / componentBufferSamples.size();
+    }
+
+    protected void sampleComponentBuffers(){
+        //sample componentBuffer and add current system state
+        for (ComponentName cn : this.componentBufferSamples.keySet()){
+            ArrayList<Integer> componentBufferSamples = this.componentBufferSamples.get(cn);
+            componentBufferSamples.add(this.componentBuffers.get(cn).size());
         }
     }
 

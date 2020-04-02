@@ -1,36 +1,36 @@
 package entities;
 
 import globals.ComponentName;
+import globals.EntityType;
+
+import java.util.HashMap;
 
 public class Component {
     private ComponentName componentName;
-    private Double arrivalTime;
-    private Double interArrivalTime;
-    private Double systemTime;
+    private HashMap<EntityType, Double> arrivalTimes;
+    private HashMap<EntityType, Double> interArrivalTimes;
+    private HashMap<EntityType, Double> systemTimes;
 
-    Component (ComponentName componentName, Double arrivalTime, Double interArrivalTime){
+    Component (ComponentName componentName){
         this.componentName = componentName;
-        this.arrivalTime = arrivalTime;
-        this.interArrivalTime = interArrivalTime;
+        this.arrivalTimes = new HashMap<EntityType, Double>();
+        this.interArrivalTimes = new HashMap<EntityType, Double>();
+        this.systemTimes = new HashMap<EntityType, Double>();
     }
 
-    public void retireComponent(Double clock){
-        this.systemTime = clock - this.arrivalTime;
-    }
 
-    public ComponentName getComponentName(){
-        return this.componentName;
-    }
+    public ComponentName getComponentName(){ return this.componentName; }
 
-    public Double getArrivalTime(){
-        return this.arrivalTime;
-    }
+    public void removeComponentFromSystem(EntityType entityType, Double clock){ this.setSystemTime(entityType, clock); }
 
-    public Double getInterArrivalTime(){
-        return this.interArrivalTime;
-    }
+    public void setArrivalTime(EntityType entityType, Double arrivalTime){ this.arrivalTimes.put(entityType, arrivalTime); }
+    public Double getArrivalTime(EntityType entityType){ return this.arrivalTimes.get(entityType); }
 
-    public Double getSystemTime(){
-        return this.systemTime;
-    }
+    public void setInterArrivalTime(EntityType entityType, Double interArrivalTime){ this.interArrivalTimes.put(entityType, interArrivalTime); }
+    public Double getInterArrivalTime(EntityType entityType){ return this.interArrivalTimes.get(entityType); }
+
+    public void setSystemTime(EntityType entityType, Double clock){ this.systemTimes.put(entityType, clock - this.getArrivalTime(entityType)); }
+    public Double getSystemTime(EntityType entityType){ return this.systemTimes.get(entityType); }
+
+
 }

@@ -21,7 +21,7 @@ public class Component {
 
     public ComponentName getComponentName(){ return this.componentName; }
 
-    public void removeComponentFromSystem(EntityType entityType, Double clock){ this.setSystemTime(entityType, clock); }
+    public void removeComponentFromSystem(EntityType entityType, Double clock){ this.setEntitySystemTime(entityType, clock); }
 
     public void setArrivalTime(EntityType entityType, Double arrivalTime){ this.arrivalTimes.put(entityType, arrivalTime); }
     public Double getArrivalTime(EntityType entityType){ return this.arrivalTimes.get(entityType); }
@@ -29,8 +29,14 @@ public class Component {
     public void setInterArrivalTime(EntityType entityType, Double interArrivalTime){ this.interArrivalTimes.put(entityType, interArrivalTime); }
     public Double getInterArrivalTime(EntityType entityType){ return this.interArrivalTimes.get(entityType); }
 
-    public void setSystemTime(EntityType entityType, Double clock){ this.systemTimes.put(entityType, clock - this.getArrivalTime(entityType)); }
-    public Double getSystemTime(EntityType entityType){ return this.systemTimes.get(entityType); }
+    public void setEntitySystemTime(EntityType entityType, Double clock){ this.systemTimes.put(entityType, clock - this.getArrivalTime(entityType)); }
+    public Double getEntitySystemTime(EntityType entityType){ return this.systemTimes.get(entityType); }
 
-
+    public Double getSystemTime() {
+        Double systemTime = 0.0;
+        for (Double entitySystemTime : this.systemTimes.values()){
+            systemTime += entitySystemTime;
+        }
+        return systemTime;
+    }
 }

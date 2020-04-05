@@ -8,18 +8,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public abstract class Entity {
-    private String name;                                            //Name of entity
-    private EntityState state;                                      //Current state, of type EntityState.
+    private String name;                                                                //Name of entity
+    private EntityState state;                                                          //Current state, of type EntityState.
     protected EntityType entityType;
-    private HashMap<EntityState, Double> stateTimer;               //A running counter of time spent at a given state (unit-less)
-    private Double serviceTimeRemaining;                           //A running counter to track the time remaining for the current service interval
-    private Integer servicesCompleted;                              //A running counter to track the Number of services that have been completed
-    protected HashMap<ComponentName, ArrayList<Component>> componentBuffers;           //Mapping of buffer sizes for each component. Since this is a simulation, this only maintains the number of components that would be in a (theoretical) buffer
-    protected HashMap<ComponentName, ArrayList<Integer>> componentBufferSamples;
+    private HashMap<EntityState, Double> stateTimer;                                    //A running counter of time spent at a given state (unit-less)
+    private Double serviceTimeRemaining;                                                //A running counter to track the time remaining for the current service interval
+    private Integer servicesCompleted;                                                  //A running counter to track the Number of services that have been completed
+    protected HashMap<ComponentName, ArrayList<Component>> componentBuffers;            //Mapping of buffer sizes for each component. Since this is a simulation, this only maintains the number of components that would be in a (theoretical) buffer
+    protected HashMap<ComponentName, Integer> componentBufferSampleSum;                 //Cumulative sum of component buffer sample values
+    protected Integer bufferSampleCount;                                                //Number of buffer samples taken
     protected HashMap<ComponentName, ArrayList<Component>> completedComponents;
     protected HashMap<ComponentName, Component> lastArrivedComponent;
     protected Double clock;
-
 
     public Entity(String name){
         this.name = name;
@@ -27,10 +27,11 @@ public abstract class Entity {
         this.stateTimer = new HashMap<EntityState, Double>();
         this.servicesCompleted = 0;
         this.clock = 0.0;
-        this.componentBufferSamples = new HashMap<ComponentName, ArrayList<Integer>>();
+        this.componentBufferSampleSum = new HashMap<ComponentName, Integer>();
         this.completedComponents = new HashMap<ComponentName, ArrayList<Component>>();
         this.componentBuffers = new HashMap<ComponentName, ArrayList<Component>>();
         this.lastArrivedComponent = new HashMap<ComponentName, Component>();
+        this.bufferSampleCount = 0;
     }
 
     /**
@@ -103,6 +104,24 @@ public abstract class Entity {
     public Integer getServicesCompleted(){ return this.servicesCompleted; }
 
     /**
+     * Returns all completed components
+     * @return
+     */
+    public HashMap<ComponentName, ArrayList<Component>>  getCompletedComponents(){ return this.completedComponents; }
+
+    /**
+     * Return entity type
+     * @return
+     */
+    public EntityType getEntityType() { return entityType; }
+
+    /**
+     * Return current buffer sample sums
+     * @return
+     */
+    public HashMap<ComponentName, Integer> getComponentBufferSampleSum(){ return this.componentBufferSampleSum; }
+
+    /**
      * Returns the total time spent across all states
      *
      * @return
@@ -150,7 +169,8 @@ public abstract class Entity {
      */
     public void registerComponent(ComponentName componentName){
         this.componentBuffers.put(componentName, new ArrayList<Component>());
-        this.componentBufferSamples.put(componentName, new ArrayList<Integer>());
+        //this.componentBufferSamples.put(componentName, new ArrayList<Integer>());
+        this.componentBufferSampleSum.put(componentName, 0);
     }
 
     public String calculateLittlesLaw(){
@@ -178,26 +198,23 @@ public abstract class Entity {
         Double sumSystemTimes = 0.0;
         ArrayList<Component> completedComponents = this.completedComponents.get(componentName);
         for (Component component : completedComponents){
-            sumSystemTimes += component.getSystemTime(this.entityType);
+            sumSystemTimes += component.getEntitySystemTime(this.entityType);
         }
         return sumSystemTimes/completedComponents.size();
     }
 
     private Double getAvgNumberInSystem(ComponentName componentName){
-        Double sumBufferSample = 0.0;
-        ArrayList<Integer> componentBufferSamples = this.componentBufferSamples.get(componentName);
-        for (Integer componentBufferSample : componentBufferSamples){
-            sumBufferSample += componentBufferSample;
-        }
-        return sumBufferSample / componentBufferSamples.size();
+        return ((double)this.componentBufferSampleSum.get(componentName) / this.bufferSampleCount);
     }
 
     protected void sampleComponentBuffers(){
         //sample componentBuffer and add current system state
-        for (ComponentName cn : this.componentBufferSamples.keySet()){
-            ArrayList<Integer> componentBufferSamples = this.componentBufferSamples.get(cn);
-            componentBufferSamples.add(this.componentBuffers.get(cn).size());
+        for (ComponentName cn : this.componentBufferSampleSum.keySet()){
+            Integer componentBufferSampleSum = this.componentBufferSampleSum.get(cn);
+            componentBufferSampleSum += this.componentBuffers.get(cn).size();
+            this.componentBufferSampleSum.put(cn, componentBufferSampleSum);
         }
+        this.bufferSampleCount ++;
     }
 
     public abstract void clockUpdate(Double interval);

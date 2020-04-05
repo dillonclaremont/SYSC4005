@@ -4,14 +4,19 @@ import entities.Inspector;
 import entities.WorkBench;
 import globals.ComponentName;
 import globals.EntityState;
+import globals.EntityType;
 import globals.Product;
+import statistics.Calculator;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class SimulationDriver {
     private static final int WORKBENCH_COMPONENT_BUFFER_SIZE = 2;
     private static final Double CLOCK_INCREMENT_SIZE = 0.01;
+    private static final int NUMBER_OF_REPLICATIONS = 5;
+    private static boolean PERFORM_SYSTEM_VERIFICATION = true;
 
     /**
      * Simulation Driver.
@@ -19,45 +24,113 @@ public class SimulationDriver {
      * @param args
      */
     public static void main(String args[]){
+        HashMap<String, ArrayList<Integer>> replicationResults = new HashMap<String, ArrayList<Integer>>();
+        HashMap<ComponentName, ArrayList<Component>> allCompletedComponents = new HashMap<ComponentName, ArrayList<Component>>();
+
+        //Initialize all entities
         ArrayList<Entity> entities = init();
-        boolean running = true;
 
-        //Run simulation until all entities are in either the DONE or BLOCKED state.
-        while (running) {
-            ArrayList<EntityState> entityStates = new ArrayList<EntityState>();             //This is used track the states of all entities for each clock cycle
+        //Initialize replicationResults - used to contain results for each replication
+        for (Entity entity : entities) {
+            ArrayList<Integer> servicesCompleted = new ArrayList<Integer>();
+            replicationResults.put(entity.getName(), servicesCompleted);
+        }
 
-            //Iterate through each entity and trigger the entity's clock to update
-            for (Entity entity : entities) {
-                //Capture current state of entity
-                EntityState entityState = entity.getState();
-                entityStates.add(entityState);
+        //Run a replication
+        int replicationsCompleted = 0;
+        while (replicationsCompleted < NUMBER_OF_REPLICATIONS) {
+            HashMap<ComponentName, Integer> systemComponentBufferSampleSum = new HashMap<ComponentName, Integer>();                 //Cumulative sum of component buffer sample values
+            Integer clockIterations= 0;                                                                                             //Number of clock iterations
+            entities = init();
 
-                //Only update clock for an entity that is not in the DONE state.
-                if (entityState != EntityState.DONE) {
-                    entity.clockUpdate(CLOCK_INCREMENT_SIZE);
+            //Run simulation until all entities are in either the DONE or BLOCKED state.
+            boolean replicationComplete = false;
+            while (!replicationComplete) {
+                ArrayList<EntityState> entityStates = new ArrayList<EntityState>();             //This is used track the states of all entities for each clock cycle
+
+                //Iterate through each entity and trigger the entity's clock to update
+                for (Entity entity : entities) {
+                    //Capture current state of entity
+                    EntityState entityState = entity.getState();
+                    entityStates.add(entityState);
+
+                    //Only update clock for an entity that is not in the DONE state.
+                    if (entityState != EntityState.DONE) {
+                        entity.clockUpdate(CLOCK_INCREMENT_SIZE);
+                    }
+
                 }
+
+                //Stop simulation if any entity is in the DONE state
+                for (EntityState entityState : entityStates) {
+                    if (entityState == EntityState.DONE) {
+                        replicationComplete = true;
+                        break;
+                    }
+                }
+
+                clockIterations ++;
             }
 
-            //Stop driving the simulation if all entities are in the either DONE or BLOCKED state.
-            running = false;
-            for (EntityState entityState : entityStates){
-                if (entityState != EntityState.DONE && entityState != EntityState.BLOCKED) {
-                    running = true;
-                    break;
+            //Gather results for this replication
+            //Collects the servicesCompleted for each entity
+            //Collects each component that has made it through the entire system (to calculate little's law for the entire system)
+            for (Entity entity : entities) {
+                ArrayList<Integer> servicesCompleted = replicationResults.get(entity.getName());
+
+                //Get all components that have made it through the entire system (completed components from the workbenches)
+                if (entity.getEntityType().equals(EntityType.WORKBENCH)) {
+                    HashMap<ComponentName, ArrayList<Component>> completedComponents = entity.getCompletedComponents();
+                    for (ComponentName componentName : completedComponents.keySet()) {
+                        if (!allCompletedComponents.containsKey(componentName)){
+                            allCompletedComponents.put(componentName, new ArrayList<Component>());
+                        }
+                        ArrayList<Component> comp = allCompletedComponents.get(componentName);
+                        comp.addAll(completedComponents.get(componentName));
+                    }
                 }
+
+                //Get number of services completed for each entity
+                servicesCompleted.add(entity.getServicesCompleted());
+            }
+
+            replicationsCompleted ++;
+
+            if (PERFORM_SYSTEM_VERIFICATION) {
+                System.out.println("REPLICATION " + replicationsCompleted + ":");
+                produceSystemReport(allCompletedComponents, entities, clockIterations);
+                System.out.println("-----------------------------------------------------");
+                produceEntityReport(entities);
+                System.out.println("-----------------------------------------------------");
+                System.out.println("-----------------------------------------------------");
             }
         }
 
-        produceReport(entities);
     }
 
-    private static void produceReport(ArrayList<Entity> entities){
+    private static void produceSystemReport(HashMap<ComponentName, ArrayList<Component>> allCompletedComponents, ArrayList<Entity> entities, Integer clockIterations){
+        System.out.println("SYSTEM RESULTS");
+        //Evaluate Little's law for the entire system
+        for (ComponentName componentName : allCompletedComponents.keySet()){
+            Double totalBufferSampleSum = 0.0;
+            for (Entity entity : entities){
+                if (entity.getComponentBufferSampleSum().containsKey(componentName)) {
+                    totalBufferSampleSum += entity.getComponentBufferSampleSum().get(componentName);
+                }
+            }
+            Double avgNumberInSystem = totalBufferSampleSum/clockIterations;
+            System.out.println (String.format("[%s] %s",componentName, Calculator.evaluateLittlesLaw(avgNumberInSystem, allCompletedComponents.get(componentName))));
+        }
+
+    }
+
+    private static void produceEntityReport(ArrayList<Entity> entities){
+        System.out.println("INDIVIDUAL QUEUE RESULTS");
         for (Entity entity : entities){
             System.out.println(entity.produceReport());
         }
-
-
     }
+
 
     /**
      * Initialize all components.

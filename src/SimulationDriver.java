@@ -81,7 +81,7 @@ public class SimulationDriver {
         workbenchThree.registerComponent(ComponentName.C1);
         workbenchThree.registerComponent(ComponentName.C3);
         //workbenchThree.setServiceTimes(NumberGenerator.readServiceTimeFile("resources/ws3.dat"));
-        workbenchTwo.setServiceTimes(NumberGenerator.generateExpNumberList(NUM_SERVICE_TIMES, Lambda.WORKSTATION3.value));
+        workbenchThree.setServiceTimes(NumberGenerator.generateExpNumberList(NUM_SERVICE_TIMES, Lambda.WORKSTATION3.value));
 
         Inspector inspectorOne = new Inspector("Inspector1");
         inspectorOne.registerComponent(ComponentName.C1);

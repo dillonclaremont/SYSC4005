@@ -20,29 +20,9 @@ public class NumberGenerator {
      */
     public static ArrayList<Double> generateExpNumberList(int numbersToGenerate, Double lambda){
         ArrayList<Double> generatedNumbers = new ArrayList<>();
-        int i = 0;
-        for (i = 0; i < numbersToGenerate; i++){
+        for (int i = 0; i < numbersToGenerate; i++){
             generatedNumbers.add(generateExpNumber(lambda));
         }
-        return generatedNumbers;
-    }
-
-    /**
-     * Generates an ArrayList of random numbers from an exponential distribution using given file
-     * @param filename File path containing numbers for distribution
-     * @param numbersToGenerate Size of ArrayList to generate
-     * @return ArrayList of generated random numbers
-     */
-    public static ArrayList<Double> generateExpNumberListFile(String filename, int numbersToGenerate){
-        ArrayList<Double> serviceTimes = readServiceTimeFile(filename);
-        Double mean = calculateAverage(serviceTimes);
-        ArrayList<Double> generatedNumbers = new ArrayList<>();
-        if (mean == null){
-            System.out.println("Mean of " + filename + " could not be calculated.");
-            return generatedNumbers;
-        }
-        Double lambda = 1/mean;
-        generatedNumbers = generateExpNumberList(numbersToGenerate, lambda);
         return generatedNumbers;
     }
 

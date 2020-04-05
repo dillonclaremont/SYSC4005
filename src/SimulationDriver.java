@@ -1,6 +1,7 @@
 import entities.*;
 import globals.ComponentName;
 import globals.EntityState;
+import globals.Lambda;
 import globals.Product;
 
 import java.io.InputStream;
@@ -68,19 +69,19 @@ public class SimulationDriver {
         WorkBench workbenchOne = new WorkBench("WorkBench1", Product.P1, WORKBENCH_COMPONENT_BUFFER_SIZE);
         workbenchOne.registerComponent(ComponentName.C1);
         //workbenchOne.setServiceTimes(NumberGenerator.readServiceTimeFile("resources/ws1.dat"));
-        workbenchOne.setServiceTimes(NumberGenerator.generateExpNumberListFile("resources/ws1.dat",NUM_SERVICE_TIMES));
+        workbenchOne.setServiceTimes(NumberGenerator.generateExpNumberList(NUM_SERVICE_TIMES, Lambda.WORKSTATION1.value));
 
         WorkBench workbenchTwo = new WorkBench("WorkBench2", Product.P2, WORKBENCH_COMPONENT_BUFFER_SIZE);
         workbenchTwo.registerComponent(ComponentName.C1);
         workbenchTwo.registerComponent(ComponentName.C2);
         //workbenchTwo.setServiceTimes(NumberGenerator.readServiceTimeFile("resources/ws2.dat"));
-        workbenchTwo.setServiceTimes(NumberGenerator.generateExpNumberListFile("resources/ws2.dat",NUM_SERVICE_TIMES));
+        workbenchTwo.setServiceTimes(NumberGenerator.generateExpNumberList(NUM_SERVICE_TIMES, Lambda.WORKSTATION2.value));
 
         WorkBench workbenchThree = new WorkBench("WorkBench3", Product.P3, WORKBENCH_COMPONENT_BUFFER_SIZE);
         workbenchThree.registerComponent(ComponentName.C1);
         workbenchThree.registerComponent(ComponentName.C3);
         //workbenchThree.setServiceTimes(NumberGenerator.readServiceTimeFile("resources/ws3.dat"));
-        workbenchTwo.setServiceTimes(NumberGenerator.generateExpNumberListFile("resources/ws3.dat",NUM_SERVICE_TIMES));
+        workbenchTwo.setServiceTimes(NumberGenerator.generateExpNumberList(NUM_SERVICE_TIMES, Lambda.WORKSTATION3.value));
 
         Inspector inspectorOne = new Inspector("Inspector1");
         inspectorOne.registerComponent(ComponentName.C1);
@@ -91,7 +92,7 @@ public class SimulationDriver {
         inspectorOne.registerWorkbenchPriority(workbenchTwo, 2);
         inspectorOne.registerWorkbenchPriority(workbenchThree, 3);
         //inspectorOne.registerComponentServiceTimes(ComponentName.C1, NumberGenerator.readServiceTimeFile("resources/servinsp1.dat"));
-        inspectorOne.registerComponentServiceTimes(ComponentName.C1, NumberGenerator.generateExpNumberListFile("resources/servinsp1.dat",NUM_SERVICE_TIMES));
+        inspectorOne.registerComponentServiceTimes(ComponentName.C1, NumberGenerator.generateExpNumberList(NUM_SERVICE_TIMES, Lambda.SERVINSP1.value));
 
         Inspector inspectorTwo = new Inspector("Inspector2");
         inspectorTwo.registerComponent(ComponentName.C2);
@@ -102,8 +103,8 @@ public class SimulationDriver {
         inspectorTwo.registerWorkbenchPriority(workbenchThree, 2);
         //inspectorTwo.registerComponentServiceTimes(ComponentName.C2, NumberGenerator.readServiceTimeFile("resources/servinsp22.dat"));
         //inspectorTwo.registerComponentServiceTimes(ComponentName.C3, NumberGenerator.readServiceTimeFile("resources/servinsp23.dat"));
-        inspectorTwo.registerComponentServiceTimes(ComponentName.C2, NumberGenerator.generateExpNumberListFile("resources/servinsp22.dat",NUM_SERVICE_TIMES));
-        inspectorTwo.registerComponentServiceTimes(ComponentName.C3, NumberGenerator.generateExpNumberListFile("resources/servinsp23.dat",NUM_SERVICE_TIMES));
+        inspectorTwo.registerComponentServiceTimes(ComponentName.C2, NumberGenerator.generateExpNumberList(NUM_SERVICE_TIMES, Lambda.SERVINSP22.value));
+        inspectorTwo.registerComponentServiceTimes(ComponentName.C3, NumberGenerator.generateExpNumberList(NUM_SERVICE_TIMES, Lambda.SERVINSP23.value));
 
         entities.add(inspectorOne);
         entities.add(inspectorTwo);

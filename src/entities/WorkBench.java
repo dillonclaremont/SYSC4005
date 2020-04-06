@@ -1,25 +1,26 @@
 package entities;
 
-import globals.Component;
+import globals.ComponentName;
 import globals.EntityState;
+import globals.EntityType;
 import globals.Product;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+
 import java.util.LinkedList;
 import java.util.Queue;
 
 public class WorkBench extends Entity {
-    private Product product;                                            //Type of product output by this WorkBench
-    private int maxBufferSize;                                          //Maximum buffer size
-    private HashMap<Component, Integer> componentBuffers;               //Mapping of buffer sizes for each component. Since this is a simulation, this only maintains the number of components that would be in a (theoretical) buffer
-    private Queue<Double> serviceTimes;                                 //A queue of service times
+    private Product product;                                                         //Type of product output by this WorkBench
+    private int maxBufferSize;                                                       //Maximum buffer size
+    private Queue<Double> serviceTimes;                                              //A queue of service times
+
 
     public WorkBench(String name, Product product, int maxBufferSize){
         super(name);
+        this.entityType = EntityType.WORKBENCH;
         this.product = product;
         this.maxBufferSize = maxBufferSize;
-        this.componentBuffers = new HashMap<Component, Integer>();
     }
 
     /**
@@ -36,45 +37,51 @@ public class WorkBench extends Entity {
     }
 
     /**
-     * Registration method to configure this Workbench for a specific component type
-     *
-     * @param component
-     */
-    public void registerComponent(Component component){
-        this.componentBuffers.put(component, 0);
-    }
-
-    /**
      * Returns the current size of the buffer for a specific component. The "size" of the buffer indicates the "number" of components that would be in the buffer at the time of query.
      *
-     * @param component
+     * @param componentName
      * @return
      */
-    public int getBufferSize(Component component){
-        return componentBuffers.get(component);
+    public int getBufferSize(ComponentName componentName){
+        return this.componentBuffers.get(componentName).size();
     }
 
     /**
      * Places a component in the corresponding component buffer, only if buffer is less than maxBufferSize.
+     * It is assumed that this method will only be called after bufferAvailable() was called immediately before (and was true)
      *
      * @param component
      */
     public void addComponent(Component component){
-        if (this.componentBuffers.get(component) < this.maxBufferSize) {
-            Integer componentBuffer = this.componentBuffers.get(component);
-            componentBuffer++;
-            this.componentBuffers.put(component, componentBuffer);
+        ComponentName componentName = component.getComponentName();
+
+        //Get the corresponding componentBuffer for this component
+        ArrayList<Component> componentBuffer = this.componentBuffers.get(componentName);
+
+        if (!this.lastArrivedComponent.containsKey(componentName)){
+            component.setInterArrivalTime(this.entityType, this.clock);
+        } else {
+            Component lastComponent = this.lastArrivedComponent.get(componentName);
+            component.setInterArrivalTime(this.entityType, this.clock - lastComponent.getArrivalTime(this.entityType));
         }
+
+        component.setArrivalTime(this.entityType, this.clock);
+
+        //Place component in componentBuffer
+        componentBuffer.add(component);
+
+        //Add component to lastArrivedComponent, this is used to measure interarrival times
+        this.lastArrivedComponent.put(componentName, component);
     }
 
     /**
      * Query whether room in the buffer is available for a given component.
      *
-     * @param component
+     * @param componentName
      * @return
      */
-    public boolean bufferAvailable(Component component){
-        if (this.componentBuffers.containsKey(component) && (this.componentBuffers.get(component) < maxBufferSize)){
+    public boolean bufferAvailable(ComponentName componentName){
+        if (this.componentBuffers.containsKey(componentName) && (this.componentBuffers.get(componentName).size() < maxBufferSize)){
             return true;
         } else {
             return false;
@@ -97,6 +104,7 @@ public class WorkBench extends Entity {
         Double serviceTimeRemaining = this.getServiceTimeRemaining();
         EntityState currentState = this.getState();
         this.incrementStateTimer(currentState, interval);
+        this.clock += interval;
 
         if (currentState == EntityState.ACTIVE && (serviceTimeRemaining <= 0)){
             //remove 1 component from each component buffers
@@ -113,6 +121,9 @@ public class WorkBench extends Entity {
             //This should only be entered in the first clock update.
             this.attemptToAssembleProduct();
         }
+
+        //Sample the component buffers
+        this.sampleComponentBuffers();
     }
 
     /**
@@ -123,8 +134,9 @@ public class WorkBench extends Entity {
     private void attemptToAssembleProduct(){
         boolean componentsAvailableToAssembleProduct = true;
 
-        for (Integer bufferValue : this.componentBuffers.values()){
-            if (bufferValue == 0){
+        //Ensure all buffers have at least one component in them
+        for (ArrayList<Component> componentBuffer : this.componentBuffers.values()){
+            if (componentBuffer.size() == 0){
                 componentsAvailableToAssembleProduct = false;
                 break;
             }
@@ -143,18 +155,40 @@ public class WorkBench extends Entity {
      *
      */
     private void completeAssembledProduct(){
-        for (Component component : this.componentBuffers.keySet()){
-            Integer componentBuffer = this.componentBuffers.get(component);
-            componentBuffer--;
-            this.componentBuffers.put(component, componentBuffer);
+        for (ComponentName componentName : this.componentBuffers.keySet()){
+            ArrayList<Component> componentBuffer = this.componentBuffers.get(componentName);
+
+            //Remove 1st component from the buffer
+            Component component = componentBuffer.remove(0);
+
+            //Retire component (this is so the component can calculate it's system time)
+            component.removeComponentFromSystem(this.entityType, this.clock);
+
+            if(!this.completedComponents.containsKey(componentName)){
+                this.completedComponents.put(componentName, new ArrayList<Component>());
+            }
+            ArrayList<Component> completedComponents = this.completedComponents.get(componentName);
+            completedComponents.add(component);
+
         }
+    }
+
+    public double getThroughput(){
+        double productsAssembled = this.getServicesCompleted();
+        double overallTimeInHours = this.getTotalStateTime()/3600;
+        return productsAssembled / overallTimeInHours;
+    }
+
+    @Override
+    public Double getQuantityOfInterest(){
+        return this.getThroughput();
     }
 
     @Override
     public String produceReport(){
-        double productsAssembled = this.getServicesCompleted();
-        double overallTimeInHours = this.getTotalStateTime()/3600;
-        String result = String.format("[%s]  AssembledProducts: %.0f  Throughput(AssembledProducts/hr): %.2f", this.getName(), productsAssembled, (productsAssembled / overallTimeInHours));
-        return result;
+        StringBuilder result = new StringBuilder();
+        result.append(String.format("[%s]  AssembledProducts: %d  Throughput(AssembledProducts/hr): %f", this.getName(), this.getServicesCompleted(), this.getThroughput()));
+        result.append(this.calculateLittlesLaw());
+        return result.toString();
     }
 }

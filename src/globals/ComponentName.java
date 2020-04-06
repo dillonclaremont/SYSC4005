@@ -1,5 +1,5 @@
 package globals;
 
-public enum Component {
+public enum ComponentName {
     C1, C2, C3
 }

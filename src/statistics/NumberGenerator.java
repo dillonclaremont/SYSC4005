@@ -21,7 +21,7 @@ public class NumberGenerator {
     public static ArrayList<Double> generateExpNumberList(int numbersToGenerate, Double lambda){
         ArrayList<Double> generatedNumbers = new ArrayList<>();
         for (int i = 0; i < numbersToGenerate; i++){
-            generatedNumbers.add(generateExpNumber(lambda));
+            generatedNumbers.add(generateExpNumber(lambda)*60);
         }
         return generatedNumbers;
     }

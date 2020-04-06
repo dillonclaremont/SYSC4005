@@ -219,4 +219,5 @@ public abstract class Entity {
 
     public abstract void clockUpdate(Double interval);
     public abstract String produceReport();
+    public abstract Double getQuantityOfInterest();
 }

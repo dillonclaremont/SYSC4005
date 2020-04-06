@@ -177,12 +177,23 @@ public class WorkBench extends Entity {
         //this.sampleComponentBuffers();
     }
 
+    public Double getThroughput(){
+        double productsAssembled = this.getServicesCompleted();
+        double overallTimeInHours = this.getTotalStateTime()/3600;
+        return productsAssembled / overallTimeInHours;
+    }
+
+    @Override
+    public Double getQuantityOfInterest(){
+        return this.getThroughput();
+    }
+
     @Override
     public String produceReport(){
         double productsAssembled = this.getServicesCompleted();
-        double overallTimeInHours = this.getTotalStateTime()/3600;
+
         StringBuilder result = new StringBuilder();
-        result.append(String.format("[%s]  AssembledProducts: %.0f  Throughput(AssembledProducts/hr): %.2f", this.getName(), productsAssembled, (productsAssembled / overallTimeInHours)));
+        result.append(String.format("[%s]  AssembledProducts: %.0f  Throughput(AssembledProducts/hr): %.2f", this.getName(), productsAssembled, this.getThroughput()));
         result.append(this.calculateLittlesLaw());
         return result.toString();
     }

@@ -220,12 +220,23 @@ public class Inspector extends Entity{
         return candidateWorkbench;
     }
 
-    @Override
-    public String produceReport() {
+    private Double getIdleTime(){
         double timeInBlockedState = this.getStateTime(EntityState.BLOCKED);
         double overallTime = this.getTotalStateTime();
+
+        return (timeInBlockedState * 100/ overallTime);
+    }
+
+    @Override
+    public Double getQuantityOfInterest(){
+        return this.getIdleTime();
+    }
+
+    @Override
+    public String produceReport() {
+        double overallTime = this.getTotalStateTime();
         StringBuilder result = new StringBuilder();
-        result.append(String.format("[%s]  Idle %%: %.2f  TotalInspections: %d TotalBlockedTime(mins): %.2f  TotalActiveTime(mins): %.2f", this.getName(), (timeInBlockedState * 100/ overallTime), this.getServicesCompleted(), (timeInBlockedState/60), (overallTime/60)));
+        result.append(String.format("[%s]  Idle %%: %.2f  TotalInspections: %d TotalBlockedTime(mins): %.2f  TotalActiveTime(mins): %.2f", this.getName(), this.getIdleTime(), this.getServicesCompleted(), (this.getStateTime(EntityState.BLOCKED)/60), (overallTime/60)));
         result.append(this.calculateLittlesLaw());
         return result.toString();
     }

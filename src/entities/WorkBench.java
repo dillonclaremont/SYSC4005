@@ -186,13 +186,9 @@ public class WorkBench extends Entity {
 
     @Override
     public String produceReport(){
-        double productsAssembled = this.getServicesCompleted();
-
         StringBuilder result = new StringBuilder();
-        result.append(String.format("[%s]  AssembledProducts: %f  Throughput(AssembledProducts/hr): %f", this.getName(), productsAssembled, this.getThroughput()));
+        result.append(String.format("[%s]  AssembledProducts: %d  Throughput(AssembledProducts/hr): %f", this.getName(), this.getServicesCompleted(), this.getThroughput()));
         result.append(this.calculateLittlesLaw());
         return result.toString();
     }
-
-
 }

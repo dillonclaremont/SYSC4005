@@ -14,7 +14,7 @@ public class SimulationDriver {
     private static final int WORKBENCH_COMPONENT_BUFFER_SIZE = 2;
     private static final Double CLOCK_INCREMENT_SIZE = 0.1;
     private static final int NUM_SERVICE_TIMES = 6000;
-    private static final int NUMBER_OF_REPLICATIONS = 10;
+    private static final int NUMBER_OF_REPLICATIONS = 1;
     private static final boolean PERFORM_SYSTEM_VERIFICATION = true;
     private static final Double MAX_REPLICATION_LENGTH_HOURS = 1000.0;
 

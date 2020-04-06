@@ -179,8 +179,8 @@ public abstract class Entity {
             Double avgArrivalRate = 1/(this.getAvgInterArrivalTime(componentName)/3600); //arrival rate is 1/avgInterArrivalTime convert to minutes
             Double avgSystemTime = this.getAvgSystemTime(componentName)/3600; //convert to minutes
             Double averageNumberInSystem = this.getAvgNumberInSystem(componentName);
-            result.append(String.format("\n\t [%s] avgNumInSystem: %.2f,  avgArrivalRate: %.2f, avgSystemTime: %.2f", componentName, averageNumberInSystem, avgArrivalRate, avgSystemTime));
-            result.append(String.format("\n\t Little's Law: %.2f=%.2f", averageNumberInSystem, avgArrivalRate*avgSystemTime));
+            result.append(String.format("\n\t [%s] avgNumInSystem: %f,  avgArrivalRate: %f, avgSystemTime: %f", componentName, averageNumberInSystem, avgArrivalRate, avgSystemTime));
+            result.append(String.format("\n\t Little's Law: %f=%f", averageNumberInSystem, avgArrivalRate*avgSystemTime));
         }
         return result.toString();
     }

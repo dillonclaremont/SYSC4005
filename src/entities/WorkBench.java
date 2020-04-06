@@ -72,9 +72,6 @@ public class WorkBench extends Entity {
 
         //Add component to lastArrivedComponent, this is used to measure interarrival times
         this.lastArrivedComponent.put(componentName, component);
-
-        //Sample the component buffers
-        //this.sampleComponentBuffers();
     }
 
     /**
@@ -174,13 +171,12 @@ public class WorkBench extends Entity {
             completedComponents.add(component);
 
         }
-        //this.sampleComponentBuffers();
     }
 
-    public Double getThroughput(){
+    public double getThroughput(){
         double productsAssembled = this.getServicesCompleted();
         double overallTimeInHours = this.getTotalStateTime()/3600;
-        return productsAssembled / overallTimeInHours;
+        return Math.round(productsAssembled / overallTimeInHours);
     }
 
     @Override

@@ -176,7 +176,7 @@ public class WorkBench extends Entity {
     public double getThroughput(){
         double productsAssembled = this.getServicesCompleted();
         double overallTimeInHours = this.getTotalStateTime()/3600;
-        return Math.round(productsAssembled / overallTimeInHours);
+        return productsAssembled / overallTimeInHours;
     }
 
     @Override
@@ -189,7 +189,7 @@ public class WorkBench extends Entity {
         double productsAssembled = this.getServicesCompleted();
 
         StringBuilder result = new StringBuilder();
-        result.append(String.format("[%s]  AssembledProducts: %.0f  Throughput(AssembledProducts/hr): %.2f", this.getName(), productsAssembled, this.getThroughput()));
+        result.append(String.format("[%s]  AssembledProducts: %f  Throughput(AssembledProducts/hr): %f", this.getName(), productsAssembled, this.getThroughput()));
         result.append(this.calculateLittlesLaw());
         return result.toString();
     }

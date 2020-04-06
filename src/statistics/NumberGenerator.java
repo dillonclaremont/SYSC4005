@@ -1,4 +1,4 @@
-package entities;
+package statistics;
 
 import java.io.InputStream;
 import java.util.ArrayList;

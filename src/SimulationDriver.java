@@ -5,17 +5,18 @@ import globals.Lambda;
 import globals.EntityType;
 import globals.Product;
 import statistics.Calculator;
+import statistics.NumberGenerator;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class SimulationDriver {
     private static final int WORKBENCH_COMPONENT_BUFFER_SIZE = 2;
     private static final Double CLOCK_INCREMENT_SIZE = 0.01;
-    private static final int NUM_SERVICE_TIMES = 300;
+    private static final int NUM_SERVICE_TIMES = 5000;
     private static final int NUMBER_OF_REPLICATIONS = 5;
-    private static boolean PERFORM_SYSTEM_VERIFICATION = true;
+    private static final boolean PERFORM_SYSTEM_VERIFICATION = true;
+    private static final Double MAX_REPLICATION_LENGTH_HOURS = 12.0;
 
     /**
      * Simulation Driver.
@@ -24,7 +25,6 @@ public class SimulationDriver {
      */
     public static void main(String args[]){
         HashMap<String, ArrayList<Integer>> replicationResults = new HashMap<String, ArrayList<Integer>>();
-        HashMap<ComponentName, ArrayList<Component>> allCompletedComponents = new HashMap<ComponentName, ArrayList<Component>>();
 
         //Initialize all entities
         ArrayList<Entity> entities = init();
@@ -36,9 +36,10 @@ public class SimulationDriver {
         }
 
         //Run a replication
-        int replicationsCompleted = 0;
-        while (replicationsCompleted < NUMBER_OF_REPLICATIONS) {
+        int replicationNumber = 1;
+        while (replicationNumber <= NUMBER_OF_REPLICATIONS) {
             HashMap<ComponentName, Integer> systemComponentBufferSampleSum = new HashMap<ComponentName, Integer>();                 //Cumulative sum of component buffer sample values
+            HashMap<ComponentName, ArrayList<Component>> allCompletedComponents = new HashMap<ComponentName, ArrayList<Component>>();
             Integer clockIterations= 0;                                                                                             //Number of clock iterations
             entities = init();
 
@@ -56,17 +57,24 @@ public class SimulationDriver {
                     //Only update clock for an entity that is not in the DONE state.
                     if (entityState != EntityState.DONE) {
                         entity.clockUpdate(CLOCK_INCREMENT_SIZE);
+                    } else {
+                        //If an entity is DONE, this means that there are no more service times for this replication loaded for this entity, end simulation
+                        System.out.println(String.format("Replication %d has been stopped since %s is in DONE state", replicationNumber, entity.getName()));
+                        replicationComplete = true;
                     }
-
                 }
 
+                if (clockIterations * CLOCK_INCREMENT_SIZE > MAX_REPLICATION_LENGTH_HOURS * 3600){
+                    System.out.println(String.format("Replication %d has been stopped since %s [MAX_REPLICATION_LENGTH_HOURS] has been reached", replicationNumber, MAX_REPLICATION_LENGTH_HOURS));
+                    replicationComplete = true;
+                }
                 //Stop simulation if any entity is in the DONE state
-                for (EntityState entityState : entityStates) {
+                /*for (EntityState entityState : entityStates) {
                     if (entityState == EntityState.DONE) {
                         replicationComplete = true;
                         break;
                     }
-                }
+                }*/
 
                 clockIterations ++;
             }
@@ -93,16 +101,16 @@ public class SimulationDriver {
                 servicesCompleted.add(entity.getServicesCompleted());
             }
 
-            replicationsCompleted ++;
-
             if (PERFORM_SYSTEM_VERIFICATION) {
-                System.out.println("REPLICATION " + replicationsCompleted + ":");
+                System.out.println(String.format("REPLICATION %d (simulated: %.2f mins):", replicationNumber, clockIterations * CLOCK_INCREMENT_SIZE/60));
                 produceSystemReport(allCompletedComponents, entities, clockIterations);
                 System.out.println("-----------------------------------------------------");
                 produceEntityReport(entities);
                 System.out.println("-----------------------------------------------------");
                 System.out.println("-----------------------------------------------------");
             }
+
+            replicationNumber ++;
         }
 
     }

@@ -6,7 +6,7 @@ import globals.EntityType;
 import globals.Product;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+
 import java.util.LinkedList;
 import java.util.Queue;
 

@@ -52,7 +52,6 @@ public class NumberGenerator {
         try {
             ClassLoader classLoader = NumberGenerator.class.getClassLoader();
             InputStream is = classLoader.getResourceAsStream(filename);
-
             //Read File Content
             String[] serviceTimesStr = new String(is.readAllBytes()).split("\n");
 

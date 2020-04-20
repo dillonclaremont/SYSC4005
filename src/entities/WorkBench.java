@@ -173,6 +173,21 @@ public class WorkBench extends Entity {
         }
     }
 
+    /**
+     *
+     * @return
+     */
+    public ArrayList<ComponentName> getBlockingComponents(){
+        ArrayList<ComponentName> blockingComponents = new ArrayList<ComponentName>();
+
+        for (ComponentName componentName : this.componentBuffers.keySet()){
+            if (this.componentBuffers.get(componentName).size() == 0){
+                blockingComponents.add(componentName);
+            }
+        }
+        return blockingComponents;
+    }
+
     public double getThroughput(){
         double productsAssembled = this.getServicesCompleted();
         double overallTimeInHours = this.getTotalStateTime()/3600;

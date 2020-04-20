@@ -14,7 +14,7 @@ public class Inspector extends Entity{
     private HashMap<WorkBench, Integer> workbenchPriorities;                            //A mapping of priorities to workbenches ex:. {W1: 1, W2: 2, W3: 3}
     private ComponentName currentComponentNameUnderInspection;                          //Current component under inspection
     private Random randomNumberGenerator;                                               //Random number generator
-
+    private boolean needsBasedComponentSelection;
 
     public Inspector (String name) {
         super(name);
@@ -23,6 +23,11 @@ public class Inspector extends Entity{
         this.componentServiceTimes = new HashMap<ComponentName, Queue<Double>>();
         this.workbenchPriorities = new HashMap<WorkBench, Integer>();
         this.randomNumberGenerator = new Random();
+        this.needsBasedComponentSelection = false;
+    }
+
+    public void setNeedsBasedComponentSelection(boolean needsBasedComponentSelection){
+        this.needsBasedComponentSelection = needsBasedComponentSelection;
     }
 
     /**
@@ -108,14 +113,22 @@ public class Inspector extends Entity{
      * @return
      */
     private void getNextComponentToInspect(){
-        ComponentName componentName;
+        ComponentName componentName = null;
 
         //Determine which component will be inspected (if there are multiple components this inspector can inspect, pick one at random
         Integer componentIndex = 0;
         if(!(this.componentToWorkbenchMapping.keySet().size() == 1)){
-            componentIndex = randomNumberGenerator.nextInt(this.componentToWorkbenchMapping.keySet().size());
+            if (this.needsBasedComponentSelection) {
+                componentName = this.determineHighestPriorityBlockedComponentToInspect();
+            }
+            if (componentName == null){
+                componentIndex = randomNumberGenerator.nextInt(this.componentToWorkbenchMapping.keySet().size());
+                componentName = new ArrayList<ComponentName>(this.componentToWorkbenchMapping.keySet()).get(componentIndex);
+            }
+        } else {
+            componentName = new ArrayList<ComponentName>(this.componentToWorkbenchMapping.keySet()).get(componentIndex);
         }
-        componentName = new ArrayList<ComponentName>(this.componentToWorkbenchMapping.keySet()).get(componentIndex);
+
 
         //Create the new component, initialize inspector arrival time as current time, and interarrival time as the time since
         //the last (same type) component arrival time occurred
@@ -146,6 +159,44 @@ public class Inspector extends Entity{
 
         //Get the service time for this component
         this.setComponentServiceTime();
+    }
+
+    /**
+     * Queries all workbenches that this Inspector services and determines whether any workbench is blocked on a particular
+     * component. Respects the workbench priority.
+     *
+     * @return
+     */
+    private ComponentName determineHighestPriorityBlockedComponentToInspect(){
+        Set<WorkBench> workBenches = this.workbenchPriorities.keySet();
+        WorkBench blockedAndEligibleWorkBench = null;
+        ComponentName blockingComponentName = null;
+
+        //Iterate through all workbenches that this Inspector services
+        for (WorkBench workBench : workBenches){
+            //Check if the workbench is blocked
+            if (workBench.getState() == EntityState.BLOCKED){
+
+                //Check each component that the workbench is blocked on, determine whether this inspector can inspect those components
+                for (ComponentName componentName : workBench.getBlockingComponents()){
+                    if (this.componentToWorkbenchMapping.containsKey(componentName)){
+                        //If this is first blocked and eligible workbench then use this workbench
+                        if (blockedAndEligibleWorkBench == null) {
+                            blockedAndEligibleWorkBench = workBench;
+                            blockingComponentName = componentName;
+                        } else {
+                            //If this workbench is blocked and eligible, then check if it is higher than the currently selected blocked workbench
+                            if (this.workbenchPriorities.get(workBench) < this.workbenchPriorities.get(blockedAndEligibleWorkBench)) {
+                                blockedAndEligibleWorkBench = workBench;
+                                blockingComponentName = componentName;
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        return blockingComponentName;
     }
 
     /**

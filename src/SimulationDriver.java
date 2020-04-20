@@ -14,9 +14,10 @@ public class SimulationDriver {
     private static final int WORKBENCH_COMPONENT_BUFFER_SIZE = 2;
     private static final Double CLOCK_INCREMENT_SIZE = 0.1;
     private static final int NUM_SERVICE_TIMES = 6000;
-    private static final int NUMBER_OF_REPLICATIONS = 1;
+    private static final int NUMBER_OF_REPLICATIONS = 10;
     private static final boolean PERFORM_SYSTEM_VERIFICATION = true;
     private static final Double MAX_REPLICATION_LENGTH_HOURS = 1000.0;
+    private static boolean USE_NEEDS_BASED_COMPONENT_SELECTION = true;
 
     /**
      * Simulation Driver.
@@ -181,6 +182,14 @@ public class SimulationDriver {
         workbenchThree.setServiceTimes(NumberGenerator.generateExpNumberList(NUM_SERVICE_TIMES, Lambda.WORKSTATION3.value));
 
         Inspector inspectorOne = new Inspector("Inspector1");
+        //test
+        inspectorOne.registerComponent(ComponentName.C2);
+        inspectorOne.registerComponent(ComponentName.C3);
+        inspectorOne.registerComponentForWorkbench(ComponentName.C2, workbenchTwo);
+        inspectorOne.registerComponentForWorkbench(ComponentName.C3, workbenchThree);
+        inspectorOne.registerComponentServiceTimes(ComponentName.C2, NumberGenerator.generateExpNumberList(NUM_SERVICE_TIMES, Lambda.SERVINSP22.value));
+        inspectorOne.registerComponentServiceTimes(ComponentName.C3, NumberGenerator.generateExpNumberList(NUM_SERVICE_TIMES, Lambda.SERVINSP23.value));
+
         inspectorOne.registerComponent(ComponentName.C1);
         inspectorOne.registerComponentForWorkbench(ComponentName.C1, workbenchOne);
         inspectorOne.registerComponentForWorkbench(ComponentName.C1, workbenchTwo);
@@ -189,16 +198,26 @@ public class SimulationDriver {
         inspectorOne.registerWorkbenchPriority(workbenchTwo, 2);
         inspectorOne.registerWorkbenchPriority(workbenchThree, 3);
         inspectorOne.registerComponentServiceTimes(ComponentName.C1, NumberGenerator.generateExpNumberList(NUM_SERVICE_TIMES, Lambda.SERVINSP1.value));
+        inspectorOne.setNeedsBasedComponentSelection(USE_NEEDS_BASED_COMPONENT_SELECTION);
 
         Inspector inspectorTwo = new Inspector("Inspector2");
+        //test
+        inspectorTwo.registerComponent(ComponentName.C1);
+        inspectorTwo.registerComponentForWorkbench(ComponentName.C1, workbenchOne);
+        inspectorTwo.registerComponentForWorkbench(ComponentName.C1, workbenchTwo);
+        inspectorTwo.registerComponentForWorkbench(ComponentName.C1, workbenchThree);
+        inspectorTwo.registerComponentServiceTimes(ComponentName.C1, NumberGenerator.generateExpNumberList(NUM_SERVICE_TIMES, Lambda.SERVINSP1.value));
+        inspectorTwo.registerWorkbenchPriority(workbenchOne, 3);
+
         inspectorTwo.registerComponent(ComponentName.C2);
         inspectorTwo.registerComponent(ComponentName.C3);
         inspectorTwo.registerComponentForWorkbench(ComponentName.C2, workbenchTwo);
         inspectorTwo.registerComponentForWorkbench(ComponentName.C3, workbenchThree);
-        inspectorTwo.registerWorkbenchPriority(workbenchTwo, 1);
-        inspectorTwo.registerWorkbenchPriority(workbenchThree, 2);
+        inspectorTwo.registerWorkbenchPriority(workbenchTwo, 2);
+        inspectorTwo.registerWorkbenchPriority(workbenchThree, 1);
         inspectorTwo.registerComponentServiceTimes(ComponentName.C2, NumberGenerator.generateExpNumberList(NUM_SERVICE_TIMES, Lambda.SERVINSP22.value));
         inspectorTwo.registerComponentServiceTimes(ComponentName.C3, NumberGenerator.generateExpNumberList(NUM_SERVICE_TIMES, Lambda.SERVINSP23.value));
+        inspectorTwo.setNeedsBasedComponentSelection(USE_NEEDS_BASED_COMPONENT_SELECTION);
 
         entities.add(inspectorOne);
         entities.add(inspectorTwo);

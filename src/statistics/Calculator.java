@@ -7,9 +7,9 @@ import java.util.ArrayList;
 
 public class Calculator {
 
-    static public String evaluateLittlesLaw(Double averageNumberInSystem, ArrayList<Component> components){
+    static public String evaluateLittlesLaw(Double averageNumberInSystem, ArrayList<Component> components, int numberOfinputStreams){
         StringBuilder result = new StringBuilder();
-        double avgArrivalRate = 1/(getAvgInterArrivalTime(components)/3600); //arrival rate is 1/avgInterArrivalTime convert to minutes
+        double avgArrivalRate = 1/(getAvgInterArrivalTime(components)/3600) * numberOfinputStreams; //arrival rate is 1/avgInterArrivalTime convert to minutes, multiply by the numberOfInputStreams since this is used for the calculations involving the entire system
         double avgSystemTime = getAvgSystemTime(components)/3600; //convert to minutes
         double littlesLaw = avgArrivalRate*avgSystemTime;
         result.append(String.format("\t avgNumInSystem: %f,  avgArrivalRate: %f, avgSystemTime: %f", averageNumberInSystem, avgArrivalRate, avgSystemTime));

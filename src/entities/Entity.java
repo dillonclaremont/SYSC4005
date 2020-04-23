@@ -185,7 +185,7 @@ public abstract class Entity {
         return result.toString();
     }
 
-    private Double getAvgInterArrivalTime(ComponentName componentName){
+    public Double getAvgInterArrivalTime(ComponentName componentName){
         Double sumInterArrivalTimes = 0.0;
         ArrayList<Component> completedComponents = this.completedComponents.get(componentName);
         for (Component component : completedComponents){

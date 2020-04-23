@@ -115,13 +115,20 @@ public class SimulationDriver {
         //Evaluate Little's law for the entire system
         for (ComponentName componentName : allCompletedComponents.keySet()){
             Double totalBufferSampleSum = 0.0;
+            int numberOfInputStreams = 0;           // this value is used to count how many inspectors (since these are essentially the inputs for components) were inputting the components into the system. To calculate little's law, the average interarrival time will for a component will need to be multiplied by the number of input streams for that component.
+
             for (Entity entity : entities){
                 if (entity.getComponentBufferSampleSum().containsKey(componentName)) {
                     totalBufferSampleSum += entity.getComponentBufferSampleSum().get(componentName);
+
+                    if (entity.getEntityType() == EntityType.INSPECTOR) {
+                        numberOfInputStreams ++;
+                    }
                 }
             }
+
             Double avgNumberInSystem = totalBufferSampleSum/clockIterations;
-            System.out.println (String.format("[%s] %s",componentName, Calculator.evaluateLittlesLaw(avgNumberInSystem, allCompletedComponents.get(componentName))));
+            System.out.println (String.format("[%s] %s",componentName, Calculator.evaluateLittlesLaw(avgNumberInSystem, allCompletedComponents.get(componentName), numberOfInputStreams)));
         }
         System.out.println("-----------------------------------------------------");
         System.out.println("-----------------------------------------------------");
